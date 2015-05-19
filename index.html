@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- Basic Drum Sequencer. Built by Hugh Zabriskie.	-->
+	
+	<meta charset="UTF-8">
+	
+	<!-- CSS -->
+	<link rel="stylesheet" type="text/css" href="sequencer.css">
+		
+	<!-- JAVASCRIPT -->
+	<script src="sequencer.js"></script>
+	<script src="track.js"></script>
+	<script src="buffer-loader.js"></script>
+</head>
+<body>
+	<audio id="testloop" src="test.mp3" loop></audio>
+	<div class="container">
+		<div class="img-wrapper">
+			<img src="chevron.png"/>
+		</div>
+		<input type="text" id="command" name="command" value="add hihat on 1 2 4">
+	</div>
+	<div class="footer">
+		<span>Copyright &#169; 2015 Hugh Zabriskie</span>
+	</div>
+</body>
+
+<script>
+	
+	function startHere() {
+		sequencer = new Sequencer(140, 1);
+		HISTORY = [];
+		hist_index = 0;
+		
+		document.onkeydown = respond;
+	}
+	
+	function respond(e) {
+		e = e || window.event;
+		
+		// ENTER
+		if (e.keyCode === 13) {
+			var c = getCommand();
+			setCommand("");
+			sequencer.evaluateCommand(c);
+			if (c !== "") {
+				HISTORY.push(c);
+				hist_index = 0;
+			}
+		}
+		
+		// (^) UP ARROW
+		if (e.keyCode === 38) {
+			var len = HISTORY.length;
+			if (len - hist_index > 0) {
+				hist_index += 1;
+				setCommand(HISTORY[len - hist_index]);
+			}
+		}
+		
+		// DOWN ARROW
+		if (e.keyCode === 40) {
+			var len = HISTORY.length;
+			if (hist_index > 0)
+					hist_index -= 1;
+			setCommand(
+				hist_index > 0 ? HISTORY[len - hist_index] : ""
+			);
+		}
+	}
+	
+	function getCommand() { return document.getElementById("command").value; }
+	function setCommand(value) { document.getElementById("command").value = value; }
+	
+	startHere();
+	
+</script>
+</html>
