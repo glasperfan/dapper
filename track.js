@@ -8,6 +8,7 @@
  Track = function(_buffer, _tokens) {
 	 this.buffer = _buffer; // audioBuffer object
 	 this.tokens = _tokens; // i.e ['add', 'snare', 'on', '1', '2', '4']
+	 this.type = _tokens[1];
 	 this.hits = [];
 	 this.error = null;
 	 
@@ -41,9 +42,6 @@
 			this.hits.push(beat * beatDuration);
 		}
 	}
-	
-	console.log(this.hits);
-	 
  }
 
 Track.prototype.playBar = function() {
@@ -55,12 +53,11 @@ Track.prototype.playBar = function() {
 // A buffer source must be created EACH time a sound is played 
 Track.prototype.play = function(time) {
   var source = globalContext.createBufferSource();
-  source.buffer = this.buffer.buffer;
+  source.buffer = this.buffer;
   source.connect(globalContext.destination);
   source.start(time);
 }
 
 Track.prototype.onError = function(reason) {
-	console.log(reason);
 	this.error = reason;
 }
