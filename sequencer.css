@@ -47,3 +47,48 @@ html, body {
 .footer span {
 	line-height: 40px;
 }
+
+#error {
+	width: 100%;
+  	position: absolute;
+  	bottom: 20%;
+  	text-align: center;
+}
+
+#message {
+	color: white;
+	background-color: darkcyan;
+	font-size: 28px;
+	padding: 7px 50px;
+	font-weight: 700;
+}
+
+@-webkit-keyframes fadeIn { to { opacity: 1; } }
+@keyframes fadeIn { to { opacity: 1; } }
+
+.fade-in {
+	-webkit-animation: fadeIn .3s ease-in 1 forwards;
+  	animation: fadeIn .3s ease-in 1 forwards;
+  	opacity: 0;
+}
+
+.paused { 
+	-webkit-animation-play-state: paused;
+	animation-play-state: paused; 
+}
+
+#hiddenBtn {
+	  position: absolute;
+	  text-align:center;
+	  width: 100%;
+	  top: 15%;
+}
+
+#hiddenBtn button {
+	border: 2px solid forestgreen;
+  	background-color: white;
+  	color: forestgreen;
+  	font-family: 'Open Sans', sans-serif;
+  	font-size: 18px;
+  	padding: 4px 15px;
+}

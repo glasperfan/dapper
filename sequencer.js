@@ -11,7 +11,7 @@
 	SECTIONS = {};			// global (stores sections, each a collection of tracks)
 	playSection = null; 	// global (tracks current selection being played)
 	loopOn = false; 		// global (is event loop already running?)
-	this.section = null;
+	this.section = null;	// section being constructed
 	this.phraseLength = _phraseLength;
 	 
  	this.init();
@@ -87,37 +87,49 @@ Sequencer.prototype.init = function() {
 		}
 	}
 	
+	// set error button hide functionality
+	document.getElementById("error").onclick = function() { 
+		document.getElementById("error").style.display = "none";
+	};
+	
 }
 
 Sequencer.prototype.evaluateCommand = function(c) {
 	this.tokens = c.split(" ");
 
 	// evalutate on first command
-	if (this.tokens[0] === "add") 		this.addLayer();
-	if (this.tokens[0] === "remove") 	this.removeLayer();
-	if (this.tokens[0] === "build") 	this.buildSection();
-	if (this.tokens[0] === "end")		this.endSection();
-	if (this.tokens[0] === "tempo") 	this.setTempo();
-	if (this.tokens[0] === "play") 		this.play();
-	if (this.tokens[0] === "stop") 		this.stopAll();
-	if (this.tokens[0] === "pause") 	this.pause();
+	if (this.tokens[0] === "add") 		return this.addLayer();
+	if (this.tokens[0] === "remove") 	return this.removeLayer();
+	if (this.tokens[0] === "build") 	return this.buildSection();
+	if (this.tokens[0] === "end")		return this.endSection();
+	if (this.tokens[0] === "tempo") 	return this.setTempo();
+	if (this.tokens[0] === "play") 		return this.play();
+	if (this.tokens[0] === "stop") 		return this.stopAll();
+	if (this.tokens[0] === "pause") 	return this.pause();
+
+	return this.onError("<code>" + this.tokens[0] + "</code> is not a command.");
 }
 
 Sequencer.prototype.addLayer = function() {
 	// error checking
 	if (this.tokens[1] === undefined)
-		this.onError("No instrument defined. Try: 'add snare 1 2 4'.");
+		this.onError("No instrument defined. Try: <code>add snare 1 2 4</code>");
 	else if (this.NAMES.indexOf(this.tokens[1]) < 0)
 		this.onError("No instrument exists with the name: '" + this.tokens[1] + "'.");	
+	else if (this.tokens[2] === undefined)
+		this.onError("No rhythmic pattern specified.");
 	else {
 		var newLayer = this.BUFFERS[this.tokens[1]];
 		var newTrack = new Track(newLayer, this.tokens);
 		if (newTrack.error)
 			this.onError(newTrack.error);
-		else if (this.section)
+		else if (this.section) {
 			SECTIONS[this.section].tracks.push(newTrack);
-		else
+			this.lastAdded = this.section;
+		} else {
 			TRACKS.push(newTrack);
+			this.lastAdded = null;
+		}
 	}
 }
 
@@ -129,11 +141,16 @@ Sequencer.prototype.removeLayer = function() {
 		SECTIONS = {};
 	} else if (this.tokens[1] === "last") {
 		// remove most recently added track
-		while(TRACKS.pop() === undefined) {}
+		var selection = this.lastAdded ? SECTIONS[this.section].tracks : TRACKS;
+		selection.pop();
 	} else if (this.NAMES.indexOf(this.tokens[1]) > -1) {
-		TRACKS = TRACKS.filter(function(d) { 
-			return d.type !== that.tokens[1];
-		});
+		var f = function(d) { return d.type !== that.tokens[1]; };
+		if (this.section)		
+			SECTIONS[this.section] = SECTIONS[this.section].tracks.filter(f);
+		else if (playSection)	
+			SECTIONS[playSection] = SECTIONS[playSection].tracks.filter(f);
+		else
+			TRACKS = TRACKS.filter(f);
 	}
 }
 
@@ -220,5 +237,7 @@ Sequencer.prototype.pause = function() {
 }
 
 Sequencer.prototype.onError = function(reason) {
-	console.log(reason);
+	document.getElementById("message").innerHTML = reason;
+	document.getElementById("error").style.display = "block";
+	document.querySelector("#error").classList.remove("paused");
 }

@@ -14,15 +14,20 @@
 	<script src="buffer-loader.js"></script>
 </head>
 <body>
-	<audio id="testloop" src="test.mp3" loop></audio>
 	<div class="container">
 		<div class="img-wrapper">
 			<img src="chevron.png"/>
 		</div>
 		<input type="text" id="command" name="command" value="add hihat on 1 2 4">
 	</div>
+	<div id="error"  class="fade-in paused">
+		<span id="message">Some error occurred.</span>
+	</div>
+	<div id="hiddenBtn" class="fade-in paused">
+		<button type="button">Instructions</button>
+	</div>
 	<div class="footer">
-		<span>Copyright &#169; 2015 Hugh Zabriskie</span>
+		<span>Copyright &#169; 2015 Hugh Zabriskie. Code available <a href="https://github.com/glasperfan/sequencer/">here</a>.</span>
 	</div>
 </body>
 
@@ -34,6 +39,8 @@
 		hist_index = 0;
 		
 		document.onkeydown = respond;
+		
+		setUpBoxes();
 	}
 	
 	function respond(e) {
@@ -72,6 +79,30 @@
 	
 	function getCommand() { return document.getElementById("command").value; }
 	function setCommand(value) { document.getElementById("command").value = value; }
+	
+	function setUpBoxes() {
+		var boxes = ["hiddenBtn"];
+		for (var i in boxes) {
+			var box = boxes[i];
+			document.getElementById(box).onmouseover = show;
+			document.getElementById(box).onmouseout = hide;
+		}
+		
+		function show(d) {
+			var cl = d.currentTarget.classList;
+			if (!cl.contains("fade-in"))
+				cl.add("fade-in");
+			if (cl.contains("paused"))
+				cl.remove("paused");	
+		}
+		
+		function hide(d) {
+			d = d.currentTarget;
+			if (d.classList.contains("fade-in"))
+				d.classList.remove("fade-in");
+			d.style.opacity = 0;
+		}
+	}
 	
 	startHere();
 	
