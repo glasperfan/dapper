@@ -16,8 +16,10 @@
  }
  
  Track.prototype.init = function() {
-
-	 // "on" or "every"?
+	
+	this.hits = [];
+	
+	// "on" or "every"?
 	if (this.tokens.indexOf("every") === 2) {
 		var denominator = parseInt(this.tokens[3].substr(0, this.tokens[3].length - 2));
 		if (denominator & (denominator - 1) !== 0 || denominator > 32)
@@ -42,6 +44,7 @@
 			this.hits.push(beat * beatDuration);
 		}
 	}
+	
  }
 
 Track.prototype.playBar = function() {
