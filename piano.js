@@ -44,27 +44,32 @@
 		var denomDuration = (60 / tempo) / (denom / 4);
 		var pause = 0;
 		for (var i = 0; i < denom; i++) {
-			this.hits.push(pause * 1000); // in ms
+			this.hits.push(pause); // in seconds
 			pause += denomDuration;
 		}
 	}
  }
 
 Piano.prototype.playBar = function() {
+	var measureStartTime = globalContext.currentTime;
 	for (var i in this.hits) {
 		for (var j in this.pitches) {
-			var h = this.hits[i];
-			var p = this.pitches[j];
-			var f = function() {
-				PIANOBUFFERS[p].play(); 
-			};
-			setTimeout(f, h);
+			console.log(this.pitches[j]);
+			var time = measureStartTime + this.hits[i];
+			var buffer = BUFFERS[this.pitches[j]];
+			this.play(buffer, time);
 		}
 	}
 }
+
+Piano.prototype.play = function(buffer, time) {
+	var source = globalContext.createBufferSource();
+	source.buffer = buffer;
+  	source.connect(globalContext.destination);
+  	source.start(time);
+}
  
 Piano.prototype.stop = function() {}
-
 Piano.prototype.pause = function() {}
 
 Piano.prototype.onError = function(reason) {
@@ -72,5 +77,15 @@ Piano.prototype.onError = function(reason) {
 }
 
 function reverseNote(note) {
-	return (note[note.length - 1] + note.slice(0, note.length - 1)).toUpperCase();
+	var rev = note[note.length -1] + note[0].toUpperCase();
+	return (note.length === 3) ? rev + "s" : rev;
+}
+
+
+// TODO: delete when done
+function play(buffer) {
+	var source = globalContext.createBufferSource();
+	source.buffer = buffer;
+  	source.connect(globalContext.destination);
+  	source.start(0);
 }

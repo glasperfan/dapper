@@ -17,7 +17,7 @@ KEYS = [
 	];
 
 for key in KEYS:
-	r = requests.get('http://pianosounds.pixelass.com/tones/grand-piano/6Cs.mp3');
+	r = requests.get('http://pianosounds.pixelass.com/tones/grand-piano/' + key + '.mp3');
 	f = open("%s.mp3" % key, 'w');
 	f.write(r.content);
 	f.close();

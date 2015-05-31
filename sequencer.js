@@ -47,28 +47,29 @@ Sequencer.prototype.init = function() {
 		'crash'
 	];
 	
-	this.PATHS = this.NAMES.map(function(d) { return "/sounds/" + d + ".wav"; });
-	this.BUFFERS = {}; // buffer objects
+	this.PATHS = this.NAMES.map(function(d) { return "/drums/" + d + ".wav"; });
+	BUFFERS = {}; // buffer objects
 
 
 	// custom class for loading multiple sound clips
 	// thanks to Boris Smus (http://www.html5rocks.com/en/tutorials/webaudio/intro/js/buffer-loader.js)
-	this.bufferLoader = new BufferLoader(
+	this.drumLoader = new BufferLoader(
 		globalContext,
 		this.PATHS, 
 		finishedLoading);
-	this.bufferLoader.load();
+	this.drumLoader.load();
 
 	// finish loading buffers (audio files)
 	function finishedLoading(bufferList) {
 		for (var index in that.NAMES) {
 			var name = that.NAMES[index];
-			that.BUFFERS[name] = bufferList[index];
+			BUFFERS[name] = bufferList[index];
 		}
 	}
 	
 	// piano filenames
 	// Retrieved from http://pianosounds.pixelass.com/tones/grand-piano/6Cs.mp3
+	// See script folder for how to download all of the mp3s
 	// See http://www.html5piano.ilinov.eu/full/ for another working example with these sounds.
 	this.PIANO = [
 		'1A','1As','1B','1C','1Cs','1D','1Ds','1E','1F','1Fs','1G','1Gs',
@@ -81,18 +82,16 @@ Sequencer.prototype.init = function() {
 	];
 	
 	PIANOBUFFERS = {}; // piano buffer objects
-	this.pianoEl = document.getElementById('pianoNotes');
+	this.PIANOPATHS = this.PIANO.map(function(d) { return "/piano/" + d + ".mp3"; });
 	
-	for (var n in this.PIANO) {
-		var note = this.PIANO[n];
-		var audio = new Audio();
-		//audio.controls = true;
-		//audio.autoplay = true;
-		audio.src = 'http://pianosounds.pixelass.com/tones/grand-piano/' + note + '.mp3';
-		this.pianoEl.appendChild(audio);
-		PIANOBUFFERS[note] = audio;
-	}
-	
+	this.pianoLoader = new BufferLoader(
+		globalContext,
+		this.PIANOPATHS,
+		function(bufferList) {
+			for (var index in that.PIANO)
+				BUFFERS[that.PIANO[index]] = bufferList[index];
+		});
+	this.pianoLoader.load();
 	
 	// set error button hide functionality
 	document.getElementById("error").onclick = function() { 
@@ -129,7 +128,7 @@ Sequencer.prototype.addLayer = function() {
 		this.onError("No rhythmic pattern specified.");
 	else {
 		// rhythmic input
-		var newLayer = this.BUFFERS[this.tokens[1]];
+		var newLayer = BUFFERS[this.tokens[1]];
 		var newTrack = new Track(newLayer, this.tokens);
 		if (newTrack.error)
 			return this.onError(newTrack.error);
