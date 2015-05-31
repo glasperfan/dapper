@@ -61,6 +61,9 @@ Track.prototype.play = function(time) {
   source.start(time);
 }
 
+Track.prototype.stop = function() {}
+Track.prototype.pause = function() {}
+
 Track.prototype.onError = function(reason) {
 	this.error = reason;
 }

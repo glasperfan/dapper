@@ -11,14 +11,17 @@
 	<!-- JAVASCRIPT -->
 	<script src="sequencer.js"></script>
 	<script src="track.js"></script>
+	<script src="synth.js"></script>
 	<script src="buffer-loader.js"></script>
+	<script src="piano.js"></script>
+		
 </head>
 <body>
 	<div class="container">
 		<div class="img-wrapper">
 			<img src="chevron.png"/>
 		</div>
-		<input type="text" id="command" name="command" value="add hihat on 1 2 4">
+		<input type="text" id="command" name="command" value="add piano(g6,a5) every 4th">
 	</div>
 	<div id="error"  class="fade-in paused">
 		<span id="message">Some error occurred.</span>
@@ -29,6 +32,7 @@
 	<div class="footer">
 		<span>Copyright &#169; 2015 Hugh Zabriskie. All rights reserved.</span>
 	</div>
+	<div id="pianoNotes"><!-- dynamically inserted --></div>
 </body>
 
 <script>

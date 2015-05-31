@@ -42,15 +42,16 @@ Sequencer.prototype.init = function() {
 		'hihat-3',
 		'ohihat',
 		'ohihat-2',
-		'ohihat-3',
 		'cross',
 		'snare',
-		'snare-2'
+		'crash',
+		'e-guitar'
 	];
-	this.PATHS = this.NAMES.map(function(d) { return "/sounds/" + d + ".wav"; });
-
-	this.BUFFERS = {}; // buffer objects
 	
+	this.PATHS = this.NAMES.map(function(d) { return "/sounds/" + d + ".wav"; });
+	this.BUFFERS = {}; // buffer objects
+
+
 	// custom class for loading multiple sound clips
 	// thanks to Boris Smus (http://www.html5rocks.com/en/tutorials/webaudio/intro/js/buffer-loader.js)
 	this.bufferLoader = new BufferLoader(
@@ -66,6 +67,33 @@ Sequencer.prototype.init = function() {
 			that.BUFFERS[name] = bufferList[index];
 		}
 	}
+	
+	// piano filenames
+	// Retrieved from http://pianosounds.pixelass.com/tones/grand-piano/6Cs.mp3
+	// See http://www.html5piano.ilinov.eu/full/ for another working example with these sounds.
+	this.PIANO = [
+		'1A','1As','1B','1C','1Cs','1D','1Ds','1E','1F','1Fs','1G','1Gs',
+		'2A','2As','2B','2C','2Cs','2D','2Ds','2E','2F','2Fs','2G','2Gs',
+		'3A','3As','3B','3C','3Cs','3D','3Ds','3E','3F','3Fs','3G','3Gs',
+		'4A','4As','4B','4C','4Cs','4D','4Ds','4E','4F','4Fs','4G','4Gs',
+		'5A','5As','5B','5C','5Cs','5D','5Ds','5E','5F','5Fs','5G','5Gs',
+		'6A','6As','6B','6C','6Cs','6D','6Ds','6E','6F','6Fs','6G','6Gs',
+		'7C'
+	];
+	
+	PIANOBUFFERS = {}; // piano buffer objects
+	this.pianoEl = document.getElementById('pianoNotes');
+	
+	for (var n in this.PIANO) {
+		var note = this.PIANO[n];
+		var audio = new Audio();
+		//audio.controls = true;
+		//audio.autoplay = true;
+		audio.src = 'http://pianosounds.pixelass.com/tones/grand-piano/' + note + '.mp3';
+		this.pianoEl.appendChild(audio);
+		PIANOBUFFERS[note] = audio;
+	}
+	
 	
 	// set error button hide functionality
 	document.getElementById("error").onclick = function() { 
@@ -89,21 +117,36 @@ Sequencer.prototype.evaluateCommand = function(c) {
 }
 
 Sequencer.prototype.addLayer = function() {
+	// melodic input
+	if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0) {
+		this.addMelodicInput();
+	}
 	// error checking
-	if (this.tokens[1] === undefined)
+	else if (this.tokens[1] === undefined)
 		this.onError("No instrument defined. Try: <code>add snare 1 2 4</code>");
 	else if (this.NAMES.indexOf(this.tokens[1]) < 0)
 		this.onError("No instrument exists with the name: '" + this.tokens[1] + "'.");	
 	else if (this.tokens[2] === undefined)
 		this.onError("No rhythmic pattern specified.");
 	else {
+		// rhythmic input
 		var newLayer = this.BUFFERS[this.tokens[1]];
 		var newTrack = new Track(newLayer, this.tokens);
 		if (newTrack.error)
-			this.onError(newTrack.error);
-		else
-			TRACKS.push(newTrack);
+			return this.onError(newTrack.error);
+		TRACKS.push(newTrack);
 	}
+}
+
+Sequencer.prototype.addMelodicInput = function() {
+	var newTrack = null;
+	if (this.tokens[1].indexOf("monosynth") === 0) newTrack = new Synth(this.tokens);
+	if (this.tokens[1].indexOf("piano") === 0) newTrack = new Piano(this.tokens);
+	if (!newTrack) 
+		return this.onError("Unable to identify an instrument.");
+	if (newTrack.error)
+		return this.onError(newTrack.error);
+	TRACKS.push(newTrack);
 }
 
 Sequencer.prototype.removeLayer = function() {
@@ -160,12 +203,16 @@ Sequencer.prototype.play = function() {
 
 // Clear tracks and end event loop.
 Sequencer.prototype.stopAll = function() {
+	for (var t in TRACKS)
+		TRACKS[t].stop();
 	TRACKS = [];
 	this.pause();
 }
 
 // Pause loop
 Sequencer.prototype.pause = function() {
+	for (var t in TRACKS)
+		TRACKS[t].pause();
 	clearInterval(this.interval);
 	loopOn = false;
 }
@@ -175,3 +222,21 @@ Sequencer.prototype.onError = function(reason) {
 	document.getElementById("error").style.display = "block";
 	document.querySelector("#error").classList.remove("paused");
 }
+
+
+Sequencer.prototype.extract = function(s) {
+	// check syntax
+	var start = s.indexOf("("), end = s.indexOf(")");
+	if (start >= end || end != s.length - 1)
+		return this.onError("Syntax error. Check parentheses.");
+	// return what's between the parens "( ----- )"
+	return s.slice(start + 1, end)
+		.split(",")
+		.map(function(d) { return parseFloat(d); });
+}
+
+function mg() {
+		ghost = new Audio();
+		ghost.src = "ghost.mp3";
+		ghost.play();
+	}
