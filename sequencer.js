@@ -44,8 +44,7 @@ Sequencer.prototype.init = function() {
 		'ohihat-2',
 		'cross',
 		'snare',
-		'crash',
-		'e-guitar'
+		'crash'
 	];
 	
 	this.PATHS = this.NAMES.map(function(d) { return "/sounds/" + d + ".wav"; });
