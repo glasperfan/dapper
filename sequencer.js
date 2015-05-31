@@ -98,6 +98,11 @@ Sequencer.prototype.init = function() {
 		document.getElementById("error").style.display = "none";
 	};
 	
+	// show terminal line when done loading 
+	window.onload = function() { 
+		document.getElementsByClassName('container')[0].style.display = "block";
+	}
+	
 }
 
 Sequencer.prototype.evaluateCommand = function(c) {
@@ -149,13 +154,19 @@ Sequencer.prototype.addMelodicInput = function() {
 
 Sequencer.prototype.removeLayer = function() {
 	var that = this;
-	if (this.tokens[1] === undefined) // remove all
+	if (this.tokens[1] === undefined) { // remove all
+		for (var track in TRACKS) TRACKS[track].stop();
 		TRACKS = [];
-	else if (this.tokens[1] === "last") // remove most recently added track
+	} else if (this.tokens[1] === "last") { // remove most recently added track
+		TRACKS[TRACKS.length - 1].stop();
 		TRACKS.pop();
-	else if (this.NAMES.indexOf(this.tokens[1]) > -1) {
-		var f = function(d) { return d.type !== that.tokens[1]; };
-		TRACKS = TRACKS.filter(f);
+	} else {
+		var toDelete = function(d) { return d.type === that.tokens[1]; };
+		var toKeep = function(d) { return d.type !== that.tokens[1]; };
+		var remove = TRACKS.filter(toDelete);
+		console.log(remove);
+		for (var track in remove) remove[track].stop();
+		TRACKS = TRACKS.filter(toKeep);
 	}
 }
 

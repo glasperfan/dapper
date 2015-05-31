@@ -11,12 +11,13 @@ html, body {
 }
 
 .container {
-	width: 450px;
+	width: 600px;
 	height: 50px;
 	border-bottom: 6px solid black;
 	position: absolute;
 	left: 0; right: 0; top: 0; bottom: 0;
 	margin: auto;
+	display: none; /* shows up after window.onload */
 }
 
 .container input {
@@ -24,6 +25,7 @@ html, body {
 	font-family: 'Open Sans', sans-serif;
   	font-size: 32px;
   	padding: 0 0 0 15px;
+	width: 525px;
 }
 
 .container .img-wrapper {

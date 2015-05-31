@@ -54,7 +54,6 @@ Piano.prototype.playBar = function() {
 	var measureStartTime = globalContext.currentTime;
 	for (var i in this.hits) {
 		for (var j in this.pitches) {
-			console.log(this.pitches[j]);
 			var time = measureStartTime + this.hits[i];
 			var buffer = BUFFERS[this.pitches[j]];
 			this.play(buffer, time);
