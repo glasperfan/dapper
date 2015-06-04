@@ -10,6 +10,7 @@
 	 this.type = "piano";
 	 this.pitches = null;
 	 this.hits = null;
+	 this.offset = 0;
 	 this.error = null;
 	 
 	 this.init();
@@ -17,14 +18,17 @@
  
  Piano.prototype.init = function() {
 	
+	var that = this;
+	
 	// gather pitches (i.e. "6G", "5A")
 	this.pitches = extract(this.tokens[1], "array").map(reverseNote);
 	
 	// gather rhythms
 	this.hits = [];
 	
+	var beatDuration = (60 / tempo);
+	
 	if (this.tokens[2] === "on") {
-		var beatDuration = (60 / tempo);
 		var beats = this.tokens.slice(3);
 		if (beats.length === 0)
 			return this.onError("You forgot to specify beats. i.e. '1 2 4'");
@@ -48,6 +52,18 @@
 			pause += denomDuration;
 		}
 	}
+	
+	// set any offset
+	for (var i = 4; i < this.tokens.length; i++) {
+		if (this.tokens[i].indexOf("offset") > -1) {
+			this.offset = extract(this.tokens[i], "value");
+			if (this.offset < 0)
+				return this.onError("Invalid offset - must be postive value representing the length of the beat offset.");
+			this.offset *= beatDuration;
+		}
+	}
+	this.hits = this.hits.map(function(d) { return d + that.offset; });
+	
  }
 
 Piano.prototype.playBar = function() {

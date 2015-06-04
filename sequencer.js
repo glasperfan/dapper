@@ -243,9 +243,3 @@ Sequencer.prototype.extract = function(s) {
 		.split(",")
 		.map(function(d) { return parseFloat(d); });
 }
-
-function mg() {
-		ghost = new Audio();
-		ghost.src = "ghost.mp3";
-		ghost.play();
-	}
