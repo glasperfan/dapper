@@ -176,7 +176,7 @@ Sequencer.prototype.eventLoop = function() {
 	// go through stack of tracks and press play on each one
 	for (var index in TRACKS) {
 		var t = TRACKS[index];
-		t.playBar();
+		t.playBar(index);
 	}
 }
 

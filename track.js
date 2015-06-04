@@ -11,6 +11,7 @@
 	 this.type = _tokens[1];
 	 this.hits = [];
 	 this.error = null;
+	 this.once = false;
 	 
 	 this.init();
  }
@@ -45,12 +46,17 @@
 		}
 	}
 	
+	// check for "once" indicator
+	for (var i in this.tokens)
+		if (this.tokens[i] === "once")
+			this.once = true;
+	
  }
 
-Track.prototype.playBar = function() {
+Track.prototype.playBar = function(index) {
 	var time = globalContext.currentTime;
 	for (var i in this.hits)
-		this.play(time + this.hits[i]);
+		this.play(time + this.hits[i]);/*Œ*/
 }
  
 // A buffer source must be created EACH time a sound is played 
