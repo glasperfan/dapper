@@ -6,15 +6,18 @@
  */
  
  Piano = function(_tokens) {
-	 this.tokens = _tokens; // i.e ['add', 'snare', 'on', '1', '2', '4']
 	 this.type = "piano";
 	 this.pitches = null;
-	 this.hits = null;
-	 this.offset = 0;
-	 this.error = null;
+	 
+	 // call the parent constructor
+	 Base.call(this, _tokens);
 	 
 	 this.init();
  }
+ 
+ // inheritance details
+ Piano.prototype = Object.create(Base.prototype);
+ Piano.prototype.constructor = Piano;
  
  Piano.prototype.init = function() {
 	
@@ -40,7 +43,7 @@
 		}
 	}
 	
-	else if (this.tokens[2] === "every") {
+	if (this.tokens[2] === "every") {
 		var denom = this.tokens[3];
 		denom = parseInt(denom.substr(0, denom.length - 2));
 		if (denom & (denom - 1) !== 0 || denom > 32)
@@ -72,35 +75,7 @@ Piano.prototype.playBar = function() {
 		for (var j in this.pitches) {
 			var time = measureStartTime + this.hits[i];
 			var buffer = BUFFERS[this.pitches[j]];
-			this.play(buffer, time);
+			this.play(time, buffer);
 		}
 	}
-}
-
-Piano.prototype.play = function(buffer, time) {
-	var source = globalContext.createBufferSource();
-	source.buffer = buffer;
-  	source.connect(globalContext.destination);
-  	source.start(time);
-}
- 
-Piano.prototype.stop = function() {}
-Piano.prototype.pause = function() {}
-
-Piano.prototype.onError = function(reason) {
-	this.error = reason;
-}
-
-function reverseNote(note) {
-	var rev = note[note.length -1] + note[0].toUpperCase();
-	return (note.length === 3) ? rev + "s" : rev;
-}
-
-
-// TODO: delete when done
-function play(buffer) {
-	var source = globalContext.createBufferSource();
-	source.buffer = buffer;
-  	source.connect(globalContext.destination);
-  	source.start(0);
 }

@@ -6,10 +6,8 @@
  */
  
  Synth = function(_tokens) {
-	 this.tokens = _tokens; // i.e ['add', 'snare', 'on', '1', '2', '4']
 	 this.type = "monosynth";
 	 this.pitches = null;
-	 this.hits = null;
 	 this.beatsPerNote = 1; // default is 1 beat / note (quarter notes)
 	 this.noteDuration = null; // duration per note
 	 this.interval = null;
@@ -22,10 +20,15 @@
 	 this.gainNode = null;
 	 this.oscillator = null;
 	 
-	 this.error = null;
+	 // call parent constructor
+	 Base.call(this, _tokens);
 	 
 	 this.init();
  }
+ 
+ // inheritance details
+ Synth.prototype = Object.create(Base.prototype);
+ Synth.prototype.constructor = Synth;
  
  Synth.prototype.init = function() {
 	
@@ -71,6 +74,7 @@ Synth.prototype.playBar = function() {
 		var counter = 0;
 		var num_pitches = this.pitches.length;
 		this.loopOn = true;
+		this.gainNode.gain.value = this.gain;
 		this.interval = setInterval(function() {
 			that.oscillator.frequency.value = that.pitches[counter];
 			counter = (counter + 1) % num_pitches;
@@ -79,6 +83,7 @@ Synth.prototype.playBar = function() {
 }
  
 Synth.prototype.stop = function() {
+	Base.prototype.stop.call(this);
 	var that = this;
 	setTimeout(function() { 
 		clearInterval(that.interval);
@@ -88,61 +93,14 @@ Synth.prototype.stop = function() {
 }
 
 Synth.prototype.pause = function() {
+	Base.prototype.pause.call(this);
 	var that = this;
-	setTimeout(function() { 
+	setTimeout(function() {
 		that.gainNode.gain.value = 0;
+		clearInterval(that.interval);
 	}, timeUntilMeasureEnd());
-}
-
-Synth.prototype.onError = function(reason) {
-	this.error = reason;
-}
-
-
-
-// HELPER FUNCTION: extract what's inside the parentheses
-function extract(s, format) {
-	// check syntax
-	var start = s.indexOf("("), end = s.indexOf(")");
-	if (start >= end || end != s.length - 1)
-		return this.onError("Syntax error. Check parentheses.");
-	// return what's between the parens "( ----- )"
-	s = s.slice(start + 1, end);
-	if (format === "string") return s;
-	if (format === "value") return parseFloat(s);
-	if (format === "array") return s.split(",");
-	if (format === "numArray") return s.split(",").map(parseFloat);
-}
-
-// Constants
-BASE_PITCHES = {"c1" : 32.7032,
-				"cs1" : 34.6478, 
-				"d1" : 36.7081,
-				"ds1" : 38.8909,
-				"e1" : 41.2034,
-				"f1" : 43.6535,
-				"fs1" : 46.2493,
-				"g1" : 48.9994,
-				"gs1" : 51.9131,
-				"a1" : 55.0000,
-				"as1" : 58.2705,
-				"b1" : 61.7354
-				}
-
-// HELPER FUNCTION: converts note names to frequencies
-function noteToFrequency(note) {
-	var noteName = note.slice(0, note.length - 1);		// cs1 --> cs
-	var noteOctave = parseInt(note[note.length -1]);	// cs1 --> 1
-	var baseFreq = BASE_PITCHES[noteName + "1"];
-	var octaveDiff = noteOctave - 1;
-	return baseFreq * Math.pow(2, octaveDiff);
+	this.loopOn = false;
 }
 
 // TODO: helper function to validate notes
 // function validateNotes(note) {}
-
-// HELPER FUNCTION: get the time until the end of the measure
-// Used for coordinating loops.
-function timeUntilMeasureEnd() {
-	return (measureStart + (60 / tempo * 4) - globalContext.currentTime) * 1000;
-}

@@ -7,15 +7,21 @@
  
  Track = function(_buffer, _tokens) {
 	 this.buffer = _buffer; // audioBuffer object
-	 this.tokens = _tokens; // i.e ['add', 'snare', 'on', '1', '2', '4']
 	 this.type = _tokens[1];
 	 this.hits = [];
 	 this.error = null;
 	 this.offset = 0;
 	 this.once = false;
 	 
+	 // call the parent constructor
+	 Base.call(this, _tokens);
+	 
 	 this.init();
  }
+ 
+ // inheritance details
+ Track.prototype = Object.create(Base.prototype);
+ Track.prototype.constructor = Track;
  
  Track.prototype.init = function() {
 	
@@ -67,19 +73,4 @@ Track.prototype.playBar = function(index) {
 	var time = globalContext.currentTime;
 	for (var i in this.hits)
 		this.play(time + this.hits[i]);
-}
- 
-// A buffer source must be created EACH time a sound is played 
-Track.prototype.play = function(time) {
-  var source = globalContext.createBufferSource();
-  source.buffer = this.buffer;
-  source.connect(globalContext.destination);
-  source.start(time);
-}
-
-Track.prototype.stop = function() {}
-Track.prototype.pause = function() {}
-
-Track.prototype.onError = function(reason) {
-	this.error = reason;
 }
