@@ -80,6 +80,27 @@ function hide(el) { el.style.display = "none"; }
 function show(el) { el.style.display = "block"; }
 
 
+// update track table display
+function updateDisplay() {
+	var table = document.getElementById("tracks-table");
+	
+	// delete the rows
+	while(table.rows.length > 1) {
+  		table.deleteRow(1); // delete second row, avoid header
+	}
+	for (var i = 0; i < TRACKS.length; i++) {
+		var track = TRACKS[i];
+		var row = table.insertRow(i + 1);
+
+		var inst_cell = row.insertCell(0);
+		var mel_cell = row.insertCell(1);
+		var rhm_cell = row.insertCell(2);
+
+		inst_cell.innerHTML = TRACKS[i].type;
+		mel_cell.innerHTML = (TRACKS[i].pitches === undefined) ? '' : TRACKS[i].pitches;
+		rhm_cell.innerHTML = TRACKS[i].tokens.slice(2).join(' ');
+	}
+}
 
 
 /*

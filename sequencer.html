@@ -33,12 +33,15 @@
 			<input type="text" id="command" name="command" value="add piano(g6,a5) every 4th">
 			<div id="message" onclick="hide(this);">Some error occurred.</div>
 			<div id="tracks">
-				<table style="width:100%">
-				  <tr>
-				    <th>Instrument</th>
-				    <th>Melody</th> 
-				    <th>Rhythm</th>
-				  </tr>
+				<table style="width:100%" id="tracks-table">
+				  	<thead>
+					  	<tr>
+					    	<th>Instrument</th>
+					    	<th>Melody</th> 
+					    	<th>Rhythm</th>
+					 	</tr>
+				  	</thead>
+				  	<tbody></tbody>
 				</table>
 			</div>
 		</div>
@@ -103,7 +106,6 @@
 			sequencer.evaluateCommand(c);
 			if (c !== "") {
 				HISTORY.push(c);
-				console.log(HISTORY);
 				hist_index = 0;
 			}
 		}

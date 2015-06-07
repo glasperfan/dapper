@@ -174,7 +174,7 @@ Sequencer.prototype.eventLoop = function() {
 		var t = TRACKS[index];
 		t.playBar(index);
 	}
-	this.updateDisplay();
+	updateDisplay();
 }
 
 Sequencer.prototype.setTempo = function() {
@@ -251,11 +251,4 @@ Sequencer.prototype.extract = function(s) {
 	return s.slice(start + 1, end)
 		.split(",")
 		.map(function(d) { return parseFloat(d); });
-}
-
-Sequencer.prototype.updateDisplay = function(s) {
-	var table = document.getElementById("tracks");
-	for (var i = 0; i < TRACKS.length; i++) {
-		table
-	}
 }
