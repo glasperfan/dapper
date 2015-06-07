@@ -74,6 +74,8 @@ html, body {
 	font-family: monospace;
 	margin-top: 15px;
 	text-align: center;
+	height: 250px;
+	overflow: scroll;
 }
 
 
@@ -84,7 +86,6 @@ html, body {
 	  text-align:center;
 	  width: 100%;
 	  top: 15%;
-	  display: none;
 }
 
 #instructionBtn button {

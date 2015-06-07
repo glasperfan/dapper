@@ -92,10 +92,12 @@ function updateDisplay() {
 		var track = TRACKS[i];
 		var row = table.insertRow(i + 1);
 
-		var inst_cell = row.insertCell(0);
-		var mel_cell = row.insertCell(1);
-		var rhm_cell = row.insertCell(2);
+		var ind_cell = row.insertCell(0);
+		var inst_cell = row.insertCell(1);
+		var mel_cell = row.insertCell(2);
+		var rhm_cell = row.insertCell(3);
 
+		ind_cell.innerHTML = i;
 		inst_cell.innerHTML = TRACKS[i].type;
 		mel_cell.innerHTML = (TRACKS[i].pitches === undefined) ? '' : TRACKS[i].pitches;
 		rhm_cell.innerHTML = TRACKS[i].tokens.slice(2).join(' ');

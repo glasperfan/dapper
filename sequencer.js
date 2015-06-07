@@ -13,7 +13,8 @@
 	measureStart = 0.0; 	// store most recent measure start time
 	
 	this.table = document.getElementById("tracks-table"); 
- 	
+ 	this.instructions = document.getElementById("instructions");
+	 
 	this.init();
  }
 
@@ -120,7 +121,7 @@ Sequencer.prototype.evaluateCommand = function(c) {
 
 Sequencer.prototype.addLayer = function() {
 	if (this.tokens[1] === undefined)
-		this.onError("No instrument defined. Try: <code>add snare 1 2 4</code>");
+		this.onError("No instrument defined. Try: add snare on 1 2 4");
 	
 	else if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0)
 		this.addMelodicInput();
@@ -139,6 +140,7 @@ Sequencer.prototype.addLayer = function() {
 			return this.onError(newTrack.error);
 		TRACKS.push(newTrack);
 	}
+	updateDisplay();
 }
 
 Sequencer.prototype.addMelodicInput = function() {
@@ -160,13 +162,16 @@ Sequencer.prototype.removeLayer = function() {
 	} else if (this.tokens[1] === "last") { // remove most recently added track
 		TRACKS[TRACKS.length - 1].stop();
 		TRACKS.pop();
-	} else {
+	} 
+	// TODO: remove by index (i.e. rm 5)
+	else {
 		var toDelete = function(d) { return d.type === that.tokens[1]; };
 		var toKeep = function(d) { return d.type !== that.tokens[1]; };
 		var remove = TRACKS.filter(toDelete);
 		for (var track in remove) remove[track].stop();
 		TRACKS = TRACKS.filter(toKeep);
 	}
+	updateDisplay();
 }
 
 // this is where the sequencing happens
@@ -177,7 +182,6 @@ Sequencer.prototype.eventLoop = function() {
 		var t = TRACKS[index];
 		t.playBar(index);
 	}
-	updateDisplay();
 }
 
 Sequencer.prototype.setTempo = function() {
@@ -215,6 +219,7 @@ Sequencer.prototype.stopAll = function() {
 	for (var t in TRACKS)
 		TRACKS[t].stop();
 	TRACKS = [];
+	updateDisplay();
 	this.pause();
 }
 
@@ -228,12 +233,18 @@ Sequencer.prototype.pause = function() {
 
 // show tracks
 Sequencer.prototype.show = function() {
-	show(this.table, "table");
+	if (this.tokens[1] === "instructions")
+		show(this.instructions);	
+	else
+		show(this.table, "table");
 }
 
 // hide tracks
 Sequencer.prototype.hide = function() {
-	hide(this.table);
+	if (this.tokens[1] === "instructions")
+		hide(this.instructions);	
+	else
+		hide(this.table);
 }
 
 Sequencer.prototype.onError = function(reason) {
