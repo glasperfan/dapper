@@ -77,7 +77,7 @@ function noteToFrequency(note) {
 
 // hide an HTML element
 function hide(el) { el.style.display = "none"; }
-function show(el) { el.style.display = "block"; }
+function show(el, val) { el.style.display = (val === undefined) ? "block" : val; }
 
 
 // update track table display

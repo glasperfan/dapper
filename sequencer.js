@@ -6,13 +6,15 @@
  */
  
  Sequencer = function(_tempo, _phraseLength) {
-	tempo = _tempo; 		// global
-	TRACKS = []; 			// global (for all tracks)
-	loopOn = false; 		// global (is event loop already running?)
-	this.phraseLength = _phraseLength;
+	tempo = _tempo; 		// global tempo
+	TRACKS = []; 			// global track container
+	loopOn = false; 		// is event loop running?
+	this.phraseLength = _phraseLength; // TO DO: use this
 	measureStart = 0.0; 	// store most recent measure start time
-	 
- 	this.init();
+	
+	this.table = document.getElementById("tracks-table"); 
+ 	
+	this.init();
  }
 
 Sequencer.prototype.init = function() {
@@ -111,6 +113,7 @@ Sequencer.prototype.evaluateCommand = function(c) {
 	if (this.tokens[0] === "stop") 		return this.stopAll();
 	if (this.tokens[0] === "pause") 	return this.pause();
 	if (this.tokens[0] === "show")		return this.show();
+	if (this.tokens[0] === "hide")		return this.hide();
 
 	return this.onError(this.tokens[0] + " is not a command.");
 }
@@ -225,14 +228,12 @@ Sequencer.prototype.pause = function() {
 
 // show tracks
 Sequencer.prototype.show = function() {
-	var that = this;
-	var toShow = TRACKS;
-	if (this.tokens[1] !== undefined) {
-		toShow = TRACKS.filter(function(d) { 
-			return d.type === that.tokens[1];
-		});
-	}
-	
+	show(this.table, "table");
+}
+
+// hide tracks
+Sequencer.prototype.hide = function() {
+	hide(this.table);
 }
 
 Sequencer.prototype.onError = function(reason) {
