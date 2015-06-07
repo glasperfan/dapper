@@ -4,10 +4,20 @@ html, body {
 	margin: 0;
 	padding: 0;
 	font-family: 'Open Sans', sans-serif;
+	width: 100%;
 }
 
 *:focus {
 	outline: 0;
+}
+
+.screen {
+	width: 100%;
+	height: 100vh;
+	min-height: 400px;
+	min-width: 615px;
+	position: relative;
+	overflow: hidden;
 }
 
 .container {
@@ -41,52 +51,43 @@ html, body {
 .footer {
 	font-size: 10px;
 	text-align: center;
-	position: absolute;
-	bottom: 0;
 	width: 100%;
+	margin-top: 30px;
 }
 
 .footer span {
 	line-height: 40px;
 }
 
-#error {
-	width: 100%;
-  	position: absolute;
-  	bottom: 20%;
-  	text-align: center;
-}
-
 #message {
 	color: white;
 	background-color: darkcyan;
-	font-size: 28px;
-	padding: 7px 50px;
-	font-weight: 700;
+  	font-size: 20px;
+  	padding: 4px 50px 6px;
+  	font-weight: 700;
+  	margin-top: 25px;
+	display: none;
 }
 
-@-webkit-keyframes fadeIn { to { opacity: 1; } }
-@keyframes fadeIn { to { opacity: 1; } }
-
-.fade-in {
-	-webkit-animation: fadeIn .3s ease-in 1 forwards;
-  	animation: fadeIn .3s ease-in 1 forwards;
-  	opacity: 0;
+/* TRACKS TABLE */
+#tracks {
+	font-family: monospace;
+	margin-top: 15px;
+	text-align: center;
 }
 
-.paused { 
-	-webkit-animation-play-state: paused;
-	animation-play-state: paused; 
-}
 
-#hiddenBtn {
+
+/* INSTRUCTIONS PAGE */
+#instructionBtn {
 	  position: absolute;
 	  text-align:center;
 	  width: 100%;
 	  top: 15%;
+	  display: none;
 }
 
-#hiddenBtn button {
+#instructionBtn button {
 	border: 2px solid forestgreen;
   	background-color: white;
   	color: forestgreen;
@@ -94,3 +95,26 @@ html, body {
   	font-size: 18px;
   	padding: 4px 15px;
 }
+
+#instructions { 
+	width: 100%;
+	min-width: 960px;
+	height: auto;
+}
+
+.wrapper {
+	height: 100%;
+	margin: 0 50px;
+}
+
+#instructions h1 { 
+	font-weight: 700; 
+	font-size: 36px;
+	margin-top: 60px;
+	text-align: center;
+}
+
+p { margin: 15px 0; }
+code { display: block; margin: 10px 0; }
+.inline-code { font-family: monospace; }
+li { margin: 8px 0; }

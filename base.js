@@ -16,7 +16,6 @@
  
 // Create a buffer source for each sound occurrence
 Base.prototype.play = function(time, buffer) {
-	console.log(buffer === undefined);
 	var source = globalContext.createBufferSource();
 	source.buffer = (buffer !== undefined) ? buffer : this.buffer;
   	source.connect(globalContext.destination);
@@ -75,6 +74,10 @@ function noteToFrequency(note) {
 	var octaveDiff = noteOctave - 1;
 	return baseFreq * Math.pow(2, octaveDiff);
 }
+
+// hide an HTML element
+function hide(el) { el.style.display = "none"; }
+function show(el) { el.style.display = "block"; }
 
 
 

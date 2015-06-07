@@ -22,22 +22,65 @@
 		
 </head>
 <body>
-	<div class="container">
-		<div class="img-wrapper">
-			<img src="chevron.png"/>
+	<div class="screen" id="console">
+		<div id="instructionBtn" onhover="show(this);">
+			<button type="button">Instructions</button>
 		</div>
-		<input type="text" id="command" name="command" value="add piano(g6,a5) every 4th">
+		<div class="container">
+			<div class="img-wrapper">
+				<img src="chevron.png"/>
+			</div>
+			<input type="text" id="command" name="command" value="add piano(g6,a5) every 4th">
+			<div id="message" onclick="hide(this);">Some error occurred.</div>
+			<div id="tracks">
+				<table style="width:100%">
+				  <tr>
+				    <th>Instrument</th>
+				    <th>Melody</th> 
+				    <th>Rhythm</th>
+				  </tr>
+				</table>
+			</div>
+		</div>
 	</div>
-	<div id="error"  class="fade-in paused">
-		<span id="message">Some error occurred.</span>
+	<div class="screen" id="instructions">
+		<div class="wrapper">
+			<h1>Instructions</h1>
+			<p>To add an instrument loop, specify the type of instrument and then the necessary melodic and rhythmic information. 
+				If melodic content is required, it is placed between parentheses next to the instrument name.
+				The general syntax is as follows.
+			</p>
+			<code>add &lt;instrument&gt;(&lt;notes&gt;) &lt;rhythm&gt;</code>
+			<p>Below are a few examples.</p>
+			<code>add snare every 4th offset(0.5)</code>
+			<code>add hihat on 1 1.5 2.5 4 4.25 4.5 4.75</code>
+			<code>add piano(d5,e5,g6,as6) every 16th</code>
+			<p>
+				<span class="inline-code">every 4th</span> means it should recur on each beat, since the meter is 4/4.
+				<span class="inline-code">every 8th</span> refers to eighth notes, <span class="inline-code">every 16th</span></span> to 16th notes, and so on.
+				The <span class="inline-code">on</span> syntax dictates the exact beats. 1 refers to beat 1, 4 to beat 4.
+			</p>
+			<p>
+				The monosynth has a slightly different syntax. Rhythm is dictated by <span class="inline-code">len(__)</span>
+				The <span class="inline-code">len</span> value refers to how many beats each note should occupy.
+				Gain is specified with the <span class="inline-code">gain</span> attribute. It's value ranges from 0 to 1 (full volume).
+				So, for example:
+			</p>
+			<code>add monosynth(c3,b2,g3,e3) len(2) gain(0.4)</code>
+			<p>
+				Other tips:
+				<ul>
+					<li><span class="inline-code">offset</span> defines the number of beats to offset each note. So <span class="inline-code">offset(0.25)</span> offsets each note by a sixteenth beat. This is useful for creating arppegios.</li>
+					<li>Set the tempo by just running <span class="inline-code">tempo &lt;value&gt;</span>. Tempo can range from 60 to 240bpm.</li>
+					<li>The meter is currently fixed at 4/4. Hoping to make that adjustable soon.</li>
+				</ul>
+			</p>
+			<p>All questions and comments are much appreciated! Get in touch with me on my <a href="/#contact">contact</a> page.</p>
+		</div>
+		<div class="footer">
+			<span>Copyright &#169; 2015 Hugh Zabriskie. All rights reserved.</span>
+		</div>
 	</div>
-	<div id="hiddenBtn" class="fade-in paused">
-		<button type="button">Instructions</button>
-	</div>
-	<div class="footer">
-		<span>Copyright &#169; 2015 Hugh Zabriskie. All rights reserved.</span>
-	</div>
-	<div id="pianoNotes"><!-- dynamically inserted --></div>
 </body>
 
 <script>
@@ -48,8 +91,6 @@
 		hist_index = 0;
 		
 		document.onkeydown = respond;
-		
-		setUpBoxes();
 	}
 	
 	function respond(e) {
@@ -62,6 +103,7 @@
 			sequencer.evaluateCommand(c);
 			if (c !== "") {
 				HISTORY.push(c);
+				console.log(HISTORY);
 				hist_index = 0;
 			}
 		}
@@ -88,30 +130,6 @@
 	
 	function getCommand() { return document.getElementById("command").value; }
 	function setCommand(value) { document.getElementById("command").value = value; }
-	
-	function setUpBoxes() {
-		var boxes = ["hiddenBtn"];
-		for (var i in boxes) {
-			var box = boxes[i];
-			document.getElementById(box).onmouseover = show;
-			document.getElementById(box).onmouseout = hide;
-		}
-		
-		function show(d) {
-			var cl = d.currentTarget.classList;
-			if (!cl.contains("fade-in"))
-				cl.add("fade-in");
-			if (cl.contains("paused"))
-				cl.remove("paused");	
-		}
-		
-		function hide(d) {
-			d = d.currentTarget;
-			if (d.classList.contains("fade-in"))
-				d.classList.remove("fade-in");
-			d.style.opacity = 0;
-		}
-	}
 	
 	startHere();
 	

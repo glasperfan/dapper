@@ -93,16 +93,11 @@ Sequencer.prototype.init = function() {
 		});
 	this.pianoLoader.load();
 	
-	// set error button hide functionality
-	document.getElementById("error").onclick = function() { 
-		document.getElementById("error").style.display = "none";
-	};
-	
 	// show terminal line when done loading 
 	window.onload = function() { 
 		document.getElementsByClassName('container')[0].style.display = "block";
 	}
-	
+
 }
 
 Sequencer.prototype.evaluateCommand = function(c) {
@@ -115,22 +110,24 @@ Sequencer.prototype.evaluateCommand = function(c) {
 	if (this.tokens[0] === "play") 		return this.play();
 	if (this.tokens[0] === "stop") 		return this.stopAll();
 	if (this.tokens[0] === "pause") 	return this.pause();
+	if (this.tokens[0] === "show")		return this.show();
 
-	return this.onError("<code>" + this.tokens[0] + "</code> is not a command.");
+	return this.onError(this.tokens[0] + " is not a command.");
 }
 
 Sequencer.prototype.addLayer = function() {
-	// melodic input
-	if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0) {
-		this.addMelodicInput();
-	}
-	// error checking
-	else if (this.tokens[1] === undefined)
+	if (this.tokens[1] === undefined)
 		this.onError("No instrument defined. Try: <code>add snare 1 2 4</code>");
+	
+	else if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0)
+		this.addMelodicInput();
+		
 	else if (this.NAMES.indexOf(this.tokens[1]) < 0)
 		this.onError("No instrument exists with the name: '" + this.tokens[1] + "'.");	
+	
 	else if (this.tokens[2] === undefined)
 		this.onError("No rhythmic pattern specified.");
+	
 	else {
 		// rhythmic input
 		var newLayer = BUFFERS[this.tokens[1]];
@@ -164,7 +161,6 @@ Sequencer.prototype.removeLayer = function() {
 		var toDelete = function(d) { return d.type === that.tokens[1]; };
 		var toKeep = function(d) { return d.type !== that.tokens[1]; };
 		var remove = TRACKS.filter(toDelete);
-		console.log(remove);
 		for (var track in remove) remove[track].stop();
 		TRACKS = TRACKS.filter(toKeep);
 	}
@@ -178,6 +174,7 @@ Sequencer.prototype.eventLoop = function() {
 		var t = TRACKS[index];
 		t.playBar(index);
 	}
+	this.updateDisplay();
 }
 
 Sequencer.prototype.setTempo = function() {
@@ -226,10 +223,22 @@ Sequencer.prototype.pause = function() {
 	loopOn = false;
 }
 
+// show tracks
+Sequencer.prototype.show = function() {
+	var that = this;
+	var toShow = TRACKS;
+	if (this.tokens[1] !== undefined) {
+		toShow = TRACKS.filter(function(d) { 
+			return d.type === that.tokens[1];
+		});
+	}
+	
+}
+
 Sequencer.prototype.onError = function(reason) {
-	document.getElementById("message").innerHTML = reason;
-	document.getElementById("error").style.display = "block";
-	document.querySelector("#error").classList.remove("paused");
+	var message = document.getElementById("message");
+	message.innerHTML = "<code>" + reason + "</code>";
+	show(message);
 }
 
 
@@ -242,4 +251,11 @@ Sequencer.prototype.extract = function(s) {
 	return s.slice(start + 1, end)
 		.split(",")
 		.map(function(d) { return parseFloat(d); });
+}
+
+Sequencer.prototype.updateDisplay = function(s) {
+	var table = document.getElementById("tracks");
+	for (var i = 0; i < TRACKS.length; i++) {
+		table
+	}
 }
