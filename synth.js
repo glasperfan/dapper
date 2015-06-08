@@ -35,8 +35,6 @@
 	this.pitches = extract(this.tokens[1], "array")
 					.map(noteToFrequency);
 	
-	this.hits = null;
-	
 	// evaluate other tokens
 	// TODO: error checking
 	for (var i = 2; i < this.tokens.length; i++) {

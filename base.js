@@ -8,9 +8,69 @@
  
  Base = function(_tokens) {
 	this.tokens = _tokens;  // i.e ['add', 'snare', 'on', '1', '2', '4']
-	this.hits = null; // timing (in seconds) of sound occurrences
-	this.offset = 0; // default beat offset (measured in fractions of a beat)
-	this.error = null;
+	this.hits = []; 		// timing (in seconds) of sound occurrences
+	this.offset = 0; 		// default beat offset (measured in fractions of a beat)
+	this.section = null; 	// if the tracks belongs to a section
+	this.error = null;		// errors
+ }
+
+Base.prototype.grabRhythm = function() {
+	var that = this;
+	var beatDuration = (60 / tempo);
+	
+	this.hits = [];
+	
+	// "on 1 2 4"
+	if (this.tokens[2] === "on") {
+		var beats = this.tokens.slice(3);
+		// remove sect() and offset(), etc.
+		beats = beats.map(parseFloat).filter(function(d) { return d === d; });
+		if (beats.length === 0)
+			return this.onError("You forgot to specify beats. i.e. '1 2 4'");
+		for (var i = 0; i < beats.length; i++) {
+			var beat = beats[i] - 1;
+			if (beat < 0 || beat >= 4)
+				this.onError("Beats must be between 1 and 5. 1, as in \"beat 1\", represents the downbeat.");
+			this.hits.push(beat * beatDuration);
+		}
+	}
+	
+	// "every 8th"
+	if (this.tokens[2] === "every") {
+		var denom = this.tokens[3];
+		denom = parseInt(denom.substr(0, denom.length - 2));
+		if (denom & (denom - 1) !== 0 || denom > 32)
+			this.onError("The beat divisor must be a power of two no greater than 32.");
+		var denomDuration = (60 / tempo) / (denom / 4);
+		var pause = 0;
+		for (var i = 0; i < denom; i++) {
+			this.hits.push(pause); // in seconds
+			pause += denomDuration;
+		}
+	}
+}
+ 
+Base.prototype.grabAttributes = function() {
+	var that = this;
+	var beatDuration = 60 / tempo;
+	
+	for (var i = 4; i < this.tokens.length; i++) {
+		// set any offset
+		if (this.tokens[i].indexOf("offset") > -1) {
+			this.offset = extract(this.tokens[i], "value");
+			if (this.offset < 0)
+				return this.onError("Invalid offset - must be postive value representing the length of the beat offset.");
+			this.offset *= beatDuration;
+		}
+		
+		// add offset
+		this.hits = this.hits.map(function(d) { return d + that.offset; });
+		
+		// set any section
+		if (this.tokens[i].indexOf("sect") > -1) {
+			this.section = extract(this.tokens[i], "string").toUpperCase();
+		}
+	}
  }
 
  
@@ -94,11 +154,13 @@ function updateDisplay() {
 
 		var ind_cell = row.insertCell(0);
 		var inst_cell = row.insertCell(1);
-		var mel_cell = row.insertCell(2);
-		var rhm_cell = row.insertCell(3);
+		var sect_cell = row.insertCell(2);
+		var mel_cell = row.insertCell(3);
+		var rhm_cell = row.insertCell(4);
 
 		ind_cell.innerHTML = i;
 		inst_cell.innerHTML = TRACKS[i].type;
+		sect_cell.innerHTML = TRACKS[i].section;
 		mel_cell.innerHTML = (TRACKS[i].pitches === undefined) ? '' : TRACKS[i].pitches;
 		rhm_cell.innerHTML = TRACKS[i].tokens.slice(2).join(' ');
 	}

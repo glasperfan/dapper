@@ -9,6 +9,7 @@
 	tempo = _tempo; 		// global tempo
 	TRACKS = []; 			// global track container
 	loopOn = false; 		// is event loop running?
+	playingSection = null;	// currently playing section (if any)
 	this.phraseLength = _phraseLength; // TO DO: use this
 	measureStart = 0.0; 	// store most recent measure start time
 	
@@ -180,7 +181,8 @@ Sequencer.prototype.eventLoop = function() {
 	// go through stack of tracks and press play on each one
 	for (var index in TRACKS) {
 		var t = TRACKS[index];
-		t.playBar(index);
+		if ((playingSection && playingSection === t.section) || !playingSection)
+			t.playBar(index);
 	}
 }
 
@@ -205,8 +207,27 @@ Sequencer.prototype.setTempo = function() {
 	}
 }
 
-// Start all tracks - synchronized calls to eventLoop
+// Start tracks - synchronized calls to eventLoop
 Sequencer.prototype.play = function() {	
+	// "play ____"
+	if (this.tokens[1] !== undefined) {
+		var sect = this.tokens[1];
+		if (sect === "all")
+			playingSection = null;
+		else {
+			var allSections = TRACKS.map(function(d) { return d.section; });
+			if (allSections.indexOf(sect) < 0)
+				return this.onError("No section exists called " + sect);
+			else
+				playingSection = sect;
+		}
+	}
+	// "play"
+	else {
+		playingSection = null;
+	}
+	
+	// start the loop
 	if (!loopOn) {
 		this.eventLoop();
 		this.interval = setInterval(this.eventLoop, 60 / tempo * 4000);
@@ -219,6 +240,7 @@ Sequencer.prototype.stopAll = function() {
 	for (var t in TRACKS)
 		TRACKS[t].stop();
 	TRACKS = [];
+	playingSection = null;
 	updateDisplay();
 	this.pause();
 }
@@ -251,16 +273,4 @@ Sequencer.prototype.onError = function(reason) {
 	var message = document.getElementById("message");
 	message.innerHTML = "<code>" + reason + "</code>";
 	show(message);
-}
-
-
-Sequencer.prototype.extract = function(s) {
-	// check syntax
-	var start = s.indexOf("("), end = s.indexOf(")");
-	if (start >= end || end != s.length - 1)
-		return this.onError("Syntax error. Check parentheses.");
-	// return what's between the parens "( ----- )"
-	return s.slice(start + 1, end)
-		.split(",")
-		.map(function(d) { return parseFloat(d); });
 }
