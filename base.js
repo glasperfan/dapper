@@ -73,7 +73,7 @@ Base.prototype.grabAttributes = function() {
 	}
 	
 	// if no explicit section, check for a defining section
-	if (buildingSection)
+	if (buildingSection && !this.section)
 		this.section = buildingSection;
  }
 

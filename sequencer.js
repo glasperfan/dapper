@@ -18,6 +18,7 @@
 	
 	this.table = document.getElementById("tracks-table"); 
  	this.instructions = document.getElementById("instructions");
+	this.message = document.getElementById("message");
 	 
 	this.init();
  }
@@ -298,21 +299,26 @@ Sequencer.prototype.defineSection = function() {
 		return this.onError("Define what? Specify a section.")
 	else {
 		var newSectionOrEnd = this.tokens[1].toUpperCase();
-		var exists = sectionExists(newSection);
-		if (newSectionOrEnd === "end")
+		if (newSectionOrEnd === "END")
 			buildingSection = null;
-		else if (!exists)
-			buildingSection = newSection;
 		else
-			return this.onError("Invalid syntax. define &lt;section&gt; |&lt;end&gt;|");	
+			buildingSection = newSectionOrEnd;
 	}
-	console.log(buildingSection);
+	
+	if (buildingSection)
+		this.onInfo("Defining section " + buildingSection);
+	else
+		this.onInfo("Back to master...");
 }
 
 
+// TODO: make this different than onError?
+Sequencer.prototype.onInfo = function(reason) {
+	this.onError(reason);
+}
+
 
 Sequencer.prototype.onError = function(reason) {
-	var message = document.getElementById("message");
-	message.innerHTML = "<code>" + reason + "</code>";
-	show(message);
+	this.message.innerHTML = "<code>" + reason + "</code>";
+	show(this.message);
 }
