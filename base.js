@@ -140,16 +140,22 @@ function hide(el) { el.style.display = "none"; }
 function show(el, val) { el.style.display = (val === undefined) ? "block" : val; }
 
 
-// update track table display
+// update track table display (based on DISPLAYTRACKS)
 function updateDisplay() {
 	var table = document.getElementById("tracks-table");
 	
-	// delete the rows
+	// filter tracks to be shown
+	if (showSection)
+		DISPLAYTRACKS = TRACKS.filter(function(d) { return d.section === showSection; });
+	else
+		DISPLAYTRACKS = TRACKS;
+	
+	// delete rows and refresh the table
 	while(table.rows.length > 1) {
   		table.deleteRow(1); // delete second row, avoid header
 	}
-	for (var i = 0; i < TRACKS.length; i++) {
-		var track = TRACKS[i];
+	for (var i = 0; i < DISPLAYTRACKS.length; i++) {
+		var track = DISPLAYTRACKS[i];
 		var row = table.insertRow(i + 1);
 
 		var ind_cell = row.insertCell(0);
@@ -159,10 +165,10 @@ function updateDisplay() {
 		var rhm_cell = row.insertCell(4);
 
 		ind_cell.innerHTML = i;
-		inst_cell.innerHTML = TRACKS[i].type;
-		sect_cell.innerHTML = TRACKS[i].section;
-		mel_cell.innerHTML = (TRACKS[i].pitches === undefined) ? '' : TRACKS[i].pitches;
-		rhm_cell.innerHTML = TRACKS[i].tokens.slice(2).join(' ');
+		inst_cell.innerHTML = track.type;
+		sect_cell.innerHTML = track.section;
+		mel_cell.innerHTML = (track.pitches === undefined) ? '' : TRACKS[i].pitches;
+		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
 	}
 }
 

@@ -8,8 +8,11 @@
  Sequencer = function(_tempo, _phraseLength) {
 	tempo = _tempo; 		// global tempo
 	TRACKS = []; 			// global track container
+	DISPLAYTRACKS = [];		// the subset of TRACKS displayed
 	loopOn = false; 		// is event loop running?
+	buildingSection = null;	// 
 	playingSection = null;	// currently playing section (if any)
+	showSection = null;		// section displayed in the track table
 	this.phraseLength = _phraseLength; // TO DO: use this
 	measureStart = 0.0; 	// store most recent measure start time
 	
@@ -215,6 +218,7 @@ Sequencer.prototype.play = function() {
 		if (sect === "all")
 			playingSection = null;
 		else {
+			sect = sect.toUpperCase();
 			var allSections = TRACKS.map(function(d) { return d.section; });
 			if (allSections.indexOf(sect) < 0)
 				return this.onError("No section exists called " + sect);
@@ -255,8 +259,31 @@ Sequencer.prototype.pause = function() {
 
 // show tracks
 Sequencer.prototype.show = function() {
+	// display the instructions page
 	if (this.tokens[1] === "instructions")
 		show(this.instructions);	
+	
+	// display all tracks
+	else if (this.tokens[1] === "all") {
+		showSection = null;	
+		updateDisplay();
+	} 
+	
+	// display a section (if it is one)
+	else if (this.tokens[1] !== undefined) {
+		var section = this.tokens[1].toUpperCase();
+		var containsThisSection = false;
+		TRACKS.forEach(function(d) {
+			if (d.section === section)
+				containsThisSection = true;
+		});
+		if (containsThisSection)
+			showSection = section;
+		else
+			return this.onError("No section exists called " + section);
+		updateDisplay();
+	}
+	
 	else
 		show(this.table, "table");
 }
