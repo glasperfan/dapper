@@ -119,7 +119,8 @@ Sequencer.prototype.evaluateCommand = function(c) {
 	if (this.tokens[0] === "pause") 	return this.pause();
 	if (this.tokens[0] === "show")		return this.show();
 	if (this.tokens[0] === "hide")		return this.hide();
-
+	if (this.tokens[0] === "define")	return this.defineSection();	
+		
 	return this.onError(this.tokens[0] + " is not a command.");
 }
 
@@ -272,12 +273,7 @@ Sequencer.prototype.show = function() {
 	// display a section (if it is one)
 	else if (this.tokens[1] !== undefined) {
 		var section = this.tokens[1].toUpperCase();
-		var containsThisSection = false;
-		TRACKS.forEach(function(d) {
-			if (d.section === section)
-				containsThisSection = true;
-		});
-		if (containsThisSection)
+		if (sectionExists(section))
 			showSection = section;
 		else
 			return this.onError("No section exists called " + section);
@@ -295,6 +291,25 @@ Sequencer.prototype.hide = function() {
 	else
 		hide(this.table);
 }
+
+
+Sequencer.prototype.defineSection = function() {
+	if (this.tokens[1] === undefined)
+		return this.onError("Define what? Specify a section.")
+	else {
+		var newSectionOrEnd = this.tokens[1].toUpperCase();
+		var exists = sectionExists(newSection);
+		if (newSectionOrEnd === "end")
+			buildingSection = null;
+		else if (!exists)
+			buildingSection = newSection;
+		else
+			return this.onError("Invalid syntax. define &lt;section&gt; |&lt;end&gt;|");	
+	}
+	console.log(buildingSection);
+}
+
+
 
 Sequencer.prototype.onError = function(reason) {
 	var message = document.getElementById("message");

@@ -71,6 +71,10 @@ Base.prototype.grabAttributes = function() {
 			this.section = extract(this.tokens[i], "string").toUpperCase();
 		}
 	}
+	
+	// if no explicit section, check for a defining section
+	if (buildingSection)
+		this.section = buildingSection;
  }
 
  
@@ -171,6 +175,20 @@ function updateDisplay() {
 		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
 	}
 }
+
+
+// TODO: make a better implementation of this
+// A section "exists" if a tracks exists in that section.
+// In other words, an empty section doesn't exist.
+function sectionExists(section) {
+	var containsThisSection = false;
+	TRACKS.forEach(function(d) {
+		if (d.section === section)
+			containsThisSection = true;
+	});
+	return containsThisSection;
+}
+
 
 
 /*
