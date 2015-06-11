@@ -10,7 +10,7 @@
 	TRACKS = []; 			// global track container
 	DISPLAYTRACKS = [];		// the subset of TRACKS displayed
 	loopOn = false; 		// is event loop running?
-	buildingSection = null;	// 
+	buildingSection = null;	// currently defining this section
 	playingSection = null;	// currently playing section (if any)
 	showSection = null;		// section displayed in the track table
 	this.phraseLength = _phraseLength; // TO DO: use this
@@ -120,7 +120,7 @@ Sequencer.prototype.evaluateCommand = function(c) {
 	if (this.tokens[0] === "pause") 	return this.pause();
 	if (this.tokens[0] === "show")		return this.show();
 	if (this.tokens[0] === "hide")		return this.hide();
-	if (this.tokens[0] === "define")	return this.defineSection();	
+	if (this.tokens[0] === "define")	return this.define();	
 		
 	return this.onError(this.tokens[0] + " is not a command.");
 }
@@ -194,43 +194,41 @@ Sequencer.prototype.eventLoop = function() {
 Sequencer.prototype.setTempo = function() {
 	var that = this;
 	var newT = this.tokens[1];
+	
 	if (newT === undefined)
-		this.onError("You must specify a tempo between 60 and 240.");
-	else {
-		newT = parseInt(newT);
-		if (newT < 60 || newT > 240)
-			this.onError("The tempo must be between 60 and 240.");
-		else {
-			this.pause();
-			var oldTempo = tempo;
-			tempo = newT;
-			for  (var i in TRACKS)
-				TRACKS[i].init();
-			var waitTime = (measureStart + (60 / oldTempo * 4) - globalContext.currentTime) * 1000;
-			setTimeout(function() { that.play(); }, waitTime);
-		}
-	}
+		return this.onError("You must specify a tempo between 60 and 240.");
+	
+	newT = parseInt(newT);
+	if (newT < 16)
+		return this.onError("The lowest recognized tempo is 16 bpm.");
+	
+	var oldTempo = tempo;
+	tempo = newT;
+	for  (var i in TRACKS)
+		TRACKS[i].init();
+	
+	if (loopOn) {
+		this.pause();
+		this.tokens = []; // flush tokens
+		var waitTime = (measureStart + (60 / oldTempo * 4) - globalContext.currentTime) * 1000;
+		setTimeout(function() { that.play(); }, waitTime);
+	}	
 }
 
 // Start tracks - synchronized calls to eventLoop
+// TODO: fix tempo issue. add a track, play, set tempo or play then set tempo
 Sequencer.prototype.play = function() {	
-	// "play ____"
-	if (this.tokens[1] !== undefined) {
-		var sect = this.tokens[1];
-		if (sect === "all")
-			playingSection = null;
-		else {
-			sect = sect.toUpperCase();
-			var allSections = TRACKS.map(function(d) { return d.section; });
-			if (allSections.indexOf(sect) < 0)
-				return this.onError("No section exists called " + sect);
-			else
-				playingSection = sect;
-		}
-	}
-	// "play"
-	else {
+	
+	// "play", "play all"
+	if (this.tokens[1] === undefined || this.tokens[1] === "all")
 		playingSection = null;
+	else {
+		// "play <section>"
+		sect = this.tokens[1].toUpperCase();
+		var allSections = TRACKS.map(function(d) { return d.section; });
+		if (allSections.indexOf(sect) < 0)
+			return this.onError("No section exists called " + sect);
+		playingSection = sect;
 	}
 	
 	// start the loop
@@ -266,7 +264,7 @@ Sequencer.prototype.show = function() {
 		show(this.instructions);	
 	
 	// display all tracks
-	else if (this.tokens[1] === "all") {
+	else if (this.tokens[1] === "all" || this.tokens[1] === undefined) {
 		showSection = null;	
 		updateDisplay();
 	} 
@@ -294,7 +292,7 @@ Sequencer.prototype.hide = function() {
 }
 
 
-Sequencer.prototype.defineSection = function() {
+Sequencer.prototype.define = function() {
 	if (this.tokens[1] === undefined)
 		return this.onError("Define what? Specify a section.")
 	else {
