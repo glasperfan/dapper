@@ -8,10 +8,10 @@
  Sequencer = function(_tempo, _phraseLength) {
 	tempo = _tempo; 		// global tempo
 	TRACKS = []; 			// global track container
+	PLAYTRACKS = [];		// global list of playing tracks
 	DISPLAYTRACKS = [];		// the subset of TRACKS displayed
 	loopOn = false; 		// is event loop running?
 	buildingSection = null;	// currently defining this section
-	playingSection = null;	// currently playing section (if any)
 	showSection = null;		// section displayed in the track table
 	this.phraseLength = _phraseLength; // TO DO: use this
 	measureStart = 0.0; 	// store most recent measure start time
@@ -184,11 +184,8 @@ Sequencer.prototype.removeLayer = function() {
 Sequencer.prototype.eventLoop = function() {
 	measureStart = globalContext.currentTime;
 	// go through stack of tracks and press play on each one
-	for (var index in TRACKS) {
-		var t = TRACKS[index];
-		if ((playingSection && playingSection === t.section) || !playingSection)
-			t.playBar(index);
-	}
+	for (var index in PLAYTRACKS)
+		PLAYTRACKS[index].playBar();
 }
 
 Sequencer.prototype.setTempo = function() {
@@ -221,14 +218,14 @@ Sequencer.prototype.play = function() {
 	
 	// "play", "play all"
 	if (this.tokens[1] === undefined || this.tokens[1] === "all")
-		playingSection = null;
+		PLAYTRACKS = TRACKS;
 	else {
-		// "play <section>"
-		sect = this.tokens[1].toUpperCase();
-		var allSections = TRACKS.map(function(d) { return d.section; });
-		if (allSections.indexOf(sect) < 0)
-			return this.onError("No section exists called " + sect);
-		playingSection = sect;
+		// "play <sections>"
+		var sectionsEquation = this.tokens[1].toUpperCase();
+		var tracks = evaluateSectionEquation(sectionsEquation);
+		if (!tracks)
+			return this.onError("At least one specified section does not exist.")
+		PLAYTRACKS = tracks;
 	}
 	
 	// start the loop
@@ -244,7 +241,6 @@ Sequencer.prototype.stopAll = function() {
 	for (var t in TRACKS)
 		TRACKS[t].stop();
 	TRACKS = [];
-	playingSection = null;
 	updateDisplay();
 	this.pause();
 }
@@ -299,7 +295,10 @@ Sequencer.prototype.define = function() {
 		var newSectionOrEnd = this.tokens[1].toUpperCase();
 		if (newSectionOrEnd === "END")
 			buildingSection = null;
-		else
+		else if (newSectionOrEnd.indexOf("+") != -1 ||
+				 newSectionOrEnd.indexOf("-") != -1) {
+			return this.onError("Invalid section name.");
+		} else
 			buildingSection = newSectionOrEnd;
 	}
 	

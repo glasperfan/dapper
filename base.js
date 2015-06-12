@@ -10,7 +10,7 @@
 	this.tokens = _tokens;  // i.e ['add', 'snare', 'on', '1', '2', '4']
 	this.hits = []; 		// timing (in seconds) of sound occurrences
 	this.offset = 0; 		// default beat offset (measured in fractions of a beat)
-	this.section = null; 	// if the tracks belongs to a section
+	this.sections = []; 		// if the tracks belongs to a section
 	this.error = null;		// errors
  }
 
@@ -68,13 +68,13 @@ Base.prototype.grabAttributes = function() {
 		
 		// set any section
 		if (this.tokens[i].indexOf("sect") > -1) {
-			this.section = extract(this.tokens[i], "string").toUpperCase();
+			this.sections = [extract(this.tokens[i], "string").toUpperCase()];
 		}
 	}
 	
 	// if no explicit section, check for a defining section
-	if (buildingSection && !this.section)
-		this.section = buildingSection;
+	if (buildingSection && this.sections.length === 0)
+		this.sections = [buildingSection];
  }
 
  
@@ -150,7 +150,7 @@ function updateDisplay() {
 	
 	// filter tracks to be shown
 	if (showSection)
-		DISPLAYTRACKS = TRACKS.filter(function(d) { return d.section === showSection; });
+		DISPLAYTRACKS = TRACKS.filter(function(d) { return _.contains(d.sections, showSection); });
 	else
 		DISPLAYTRACKS = TRACKS;
 	
@@ -170,7 +170,7 @@ function updateDisplay() {
 
 		ind_cell.innerHTML = i;
 		inst_cell.innerHTML = track.type;
-		sect_cell.innerHTML = track.section;
+		sect_cell.innerHTML = track.sections.join(", ");
 		mel_cell.innerHTML = (track.pitches === undefined) ? '' : TRACKS[i].pitches;
 		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
 	}
@@ -181,12 +181,64 @@ function updateDisplay() {
 // A section "exists" if a tracks exists in that section.
 // In other words, an empty section doesn't exist.
 function sectionExists(section) {
+	section = section.toUpperCase();
+	
+	if (section === "ALL") // a reserved keyword for all tracks
+		return true;
+	
 	var containsThisSection = false;
+	section = section.toUpperCase();
 	TRACKS.forEach(function(d) {
-		if (d.section === section)
+		if (_.contains(d.sections, section))
 			containsThisSection = true;
 	});
+	
 	return containsThisSection;
+}
+
+// Takes a statement like "a+b-c" 
+// Uses underscore.js to simplify things.
+function evaluateSectionEquation(equation) {
+	var sections = equation.toUpperCase().split(/[+/-]/);
+	
+	// check for valid sections
+	if (!_.every(sections, function(d) { return sectionExists(d); }))	
+		return null;
+	
+	// process equation
+	equation = "+" + equation.toUpperCase();
+	var components = []; // ["+a", "-b", "+c"]
+	var piece = null;
+	for (var i = 0; i < equation.length; i++) {
+		if (equation[i] === '+' || equation[i] === '-') {
+			if (piece)
+				components.push(piece);
+			piece = equation[i];
+		}
+		else
+			piece += equation[i];
+		if (i === equation.length - 1)
+			components.push(piece);
+	}
+	
+	var result = [];
+	for (var j in components) {
+		var component = components[j];
+		
+		var section = component.substring(1);
+		var relatedTracks = TRACKS;
+		if (section !== "ALL")
+			relatedTracks = TRACKS.filter(function(d) { return _.contains(d.sections, section); });
+		
+		var mode = component[0];
+		if (mode === '+')
+			result = _.union(result, relatedTracks);
+		if (mode === "-")
+			result = _.difference(result, relatedTracks);
+	}
+	
+	return result;
+	
 }
 
 

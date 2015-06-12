@@ -31,7 +31,7 @@
 	
  }
 
-Track.prototype.playBar = function(index) {
+Track.prototype.playBar = function() {
 	var time = globalContext.currentTime;
 	for (var i in this.hits)
 		this.play(time + this.hits[i]);
