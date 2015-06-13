@@ -171,7 +171,7 @@ function updateDisplay() {
 		ind_cell.innerHTML = i;
 		inst_cell.innerHTML = track.type;
 		sect_cell.innerHTML = track.sections.join(", ");
-		mel_cell.innerHTML = (track.pitches === undefined) ? '' : TRACKS[i].pitches;
+		mel_cell.innerHTML = (track.pitches === undefined) ? '' : TRACKS[i].pitches.join(", ");
 		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
 	}
 }
@@ -239,6 +239,10 @@ function evaluateSectionEquation(equation) {
 	
 	return result;
 	
+}
+
+function trimWhiteSpace(str) {
+	return str.replace(/\s+/g, '');
 }
 
 

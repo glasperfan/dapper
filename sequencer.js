@@ -292,14 +292,35 @@ Sequencer.prototype.define = function() {
 	if (this.tokens[1] === undefined)
 		return this.onError("Define what? Specify a section.")
 	else {
-		var newSectionOrEnd = this.tokens[1].toUpperCase();
-		if (newSectionOrEnd === "END")
+		var newSection = this.tokens[1].toUpperCase();
+		// define end
+		if (newSection === "END")
 			buildingSection = null;
-		else if (newSectionOrEnd.indexOf("+") != -1 ||
-				 newSectionOrEnd.indexOf("-") != -1) {
+		
+		// define <sectionEquation>
+		else if (newSection.indexOf("=") !== -1) {
+			// TODO: check that only one equals sign exists
+			var components = newSection.split("=");
+			var newSection = components[0];
+			var tracks = evaluateSectionEquation(trimWhiteSpace(components[1]));
+			TRACKS.map(function(d) {
+				if (_.contains(tracks, d))
+					d.sections.push(newSection);
+				return d;
+			});
+			updateDisplay();
+			return this.onInfo("Section " + newSection + " is now defined.");	
+		}
+		
+		// ensure the section does not have reserved symbols
+		else if (newSection.indexOf("+") != -1 ||
+				 newSection.indexOf("-") != -1) {
 			return this.onError("Invalid section name.");
-		} else
-			buildingSection = newSectionOrEnd;
+		} 
+		
+		//
+		else
+			buildingSection = newSection;
 	}
 	
 	if (buildingSection)
