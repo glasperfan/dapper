@@ -146,7 +146,7 @@ Sequencer.prototype.addLayer = function() {
 			return this.onError(newTrack.error);
 		TRACKS.push(newTrack);
 	}
-	updateDisplay();
+	this.update();
 }
 
 Sequencer.prototype.addMelodicInput = function() {
@@ -177,7 +177,7 @@ Sequencer.prototype.removeLayer = function() {
 		for (var track in remove) remove[track].stop();
 		TRACKS = TRACKS.filter(toKeep);
 	}
-	updateDisplay();
+	this.update();
 }
 
 // this is where the sequencing happens
@@ -216,13 +216,14 @@ Sequencer.prototype.setTempo = function() {
 // TODO: fix tempo issue. add a track, play, set tempo or play then set tempo
 Sequencer.prototype.play = function() {	
 	
+	this.lastPlayCommand = this.tokens[1].toUpperCase();
+	
 	// "play", "play all"
-	if (this.tokens[1] === undefined || this.tokens[1] === "all")
+	if (this.tokens[1] === undefined || this.tokens[1] === "ALL")
 		PLAYTRACKS = TRACKS;
 	else {
 		// "play <sections>"
-		var sectionsEquation = this.tokens[1].toUpperCase();
-		var tracks = evaluateSectionEquation(sectionsEquation);
+		var tracks = evaluateSectionEquation(this.lastPlayCommand);
 		if (!tracks)
 			return this.onError("At least one specified section does not exist.")
 		PLAYTRACKS = tracks;
@@ -327,6 +328,13 @@ Sequencer.prototype.define = function() {
 		this.onInfo("Defining section " + buildingSection);
 	else
 		this.onInfo("Back to master...");
+}
+
+Sequencer.prototype.update = function() {
+	updateDisplay();
+	// generate a new play command to update PLAYTRACKS	
+	this.tokens[1] = this.lastPlayCommand;
+	this.play();
 }
 
 
