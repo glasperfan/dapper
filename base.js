@@ -75,6 +75,13 @@ Base.prototype.grabAttributes = function() {
 	// if no explicit section, check for a defining section
 	if (buildingSection && this.sections.length === 0)
 		this.sections = [buildingSection];
+		
+	// remove "sect(_)" from tokens
+	var loc = -1;
+	this.tokens.forEach(function(d, i) {
+		if (d.indexOf("sect") !== -1) loc = i;
+	});
+	if (loc !== -1) this.tokens.splice(loc, 1);
  }
 
  

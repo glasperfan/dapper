@@ -15,7 +15,7 @@
 	 
 	 // additional properties
 	 this.waveType = "sine"; // default
-	 this.waveOptions = ["sine", "square", "saw", "triangle"]; //
+	 this.waveOptions = ["sine", "square", "triangle"]; //
 	 this.gain = 0.5; // default (0.0 - 1.0)
 	 this.gainNode = null;
 	 this.oscillator = null;

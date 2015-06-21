@@ -214,12 +214,12 @@ Sequencer.prototype.setTempo = function() {
 
 // Start tracks - synchronized calls to eventLoop
 // TODO: fix tempo issue. add a track, play, set tempo or play then set tempo
-Sequencer.prototype.play = function() {	
+Sequencer.prototype.play = function() {
 	
-	this.lastPlayCommand = this.tokens[1].toUpperCase();
+	this.lastPlayCommand = this.tokens[1];
 	
 	// "play", "play all"
-	if (this.tokens[1] === undefined || this.tokens[1] === "ALL")
+	if (this.tokens[1] === undefined || this.tokens[1] === "all")
 		PLAYTRACKS = TRACKS;
 	else {
 		// "play <sections>"
@@ -333,8 +333,10 @@ Sequencer.prototype.define = function() {
 Sequencer.prototype.update = function() {
 	updateDisplay();
 	// generate a new play command to update PLAYTRACKS	
-	this.tokens[1] = this.lastPlayCommand;
-	this.play();
+	if (this.lastPlayCommand) {
+		this.tokens[1] = this.lastPlayCommand;
+		this.play();	
+	}
 }
 
 
