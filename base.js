@@ -55,22 +55,29 @@ Base.prototype.grabAttributes = function() {
 	var beatDuration = 60 / tempo;
 	
 	for (var i = 4; i < this.tokens.length; i++) {
-		// set any offset
+		// offset
 		if (this.tokens[i].indexOf("offset") > -1) {
 			this.offset = extract(this.tokens[i], "value");
 			if (this.offset < 0)
-				return this.onError("Invalid offset - must be postive value representing the length of the beat offset.");
+				return this.onError("Invalid offset - must be a postive value representing the length of the beat offset.");
 			this.offset *= beatDuration;
 		}
 		
-		// add offset
-		this.hits = this.hits.map(function(d) { return d + that.offset; });
+		// gain
+		if (this.tokens[i].indexOf("gain") > -1) {
+			this.gain = extract(this.tokens[i], "value");
+			if (this.gain < 0)
+				return this.onError("Invalid gain - must be postive value (1.0 = default).");
+		}
 		
-		// set any section
+		// section
 		if (this.tokens[i].indexOf("sect") > -1) {
 			this.sections = [extract(this.tokens[i], "string").toUpperCase()];
 		}
 	}
+	
+	// add offset
+	this.hits = this.hits.map(function(d) { return d + that.offset; });
 	
 	// if no explicit section, check for a defining section
 	if (buildingSection && this.sections.length === 0)
@@ -88,8 +95,11 @@ Base.prototype.grabAttributes = function() {
 // Create a buffer source for each sound occurrence
 Base.prototype.play = function(time, buffer) {
 	var source = globalContext.createBufferSource();
+	var gain = globalContext.createGain();
 	source.buffer = (buffer !== undefined) ? buffer : this.buffer;
-  	source.connect(globalContext.destination);
+  	gain.gain.value = this.gain;
+	source.connect(gain);
+	gain.connect(globalContext.destination);
   	source.start(time);
 }
 
