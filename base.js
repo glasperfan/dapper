@@ -7,11 +7,13 @@
  */
  
  Base = function(_tokens) {
-	this.tokens = _tokens;  // i.e ['add', 'snare', 'on', '1', '2', '4']
-	this.hits = []; 		// timing (in seconds) of sound occurrences
-	this.offset = 0; 		// default beat offset (measured in fractions of a beat)
+	this.tokens = _tokens;  		// i.e ['add', 'snare', 'on', '1', '2', '4']
+	this.hits = []; 			// timing (in seconds) of sound occurrences
+	this.offset = 0; 			// default beat offset (measured in fractions of a beat)
+	this.gain = 1.0;			// default gain
 	this.sections = []; 		// if the tracks belongs to a section
-	this.error = null;		// errors
+	this.isCollection = false;	// is it a collection track
+	this.error = null;			// errors
  }
 
 Base.prototype.grabRhythm = function() {
@@ -86,9 +88,32 @@ Base.prototype.grabAttributes = function() {
 	// remove "sect(_)" from tokens
 	var loc = -1;
 	this.tokens.forEach(function(d, i) {
-		if (d.indexOf("sect") !== -1) loc = i;
+		if (d.indexOf("sect") !== -1) 
+			d = "";
 	});
-	if (loc !== -1) this.tokens.splice(loc, 1);
+ }
+ 
+ // Convert: add pianocol(as5-1,f5-1.5,d5-2,a5-2.5,f5-2.5)
+ // to a set of pitches and rhythms
+ Base.prototype.evaluateCollection = function() {
+	 var beatDuration = (60 / tempo);
+	 this.isCollection = true;
+	 try {
+		 var collection = extract(this.tokens[1], "string").split(",");
+		 if (collection.length < 1) throw "Invalid syntax."
+		 this.pitches = [];
+		 this.hits = [];
+		 for (var c in collection) {
+			 var item = collection[c].split("-");
+			 if (item.length !== 2) throw "Invalid syntax."
+			 this.pitches[c] = item[0];
+			 this.hits[c] = (parseFloat(item[1]) - 1) * beatDuration;
+		 }
+		 this.pitches = this.pitches.map(reverseNote);
+	 }
+	 catch(err) {
+		 return sequencer.onError(err);
+	 }
  }
 
  
@@ -138,7 +163,7 @@ function extract(s, format) {
 	// check syntax
 	var start = s.indexOf("("), end = s.indexOf(")");
 	if (start >= end || end != s.length - 1)
-		return this.onError("Syntax error. Check parentheses.");
+		return sequencer.onError("Syntax error. Check parentheses.");
 	// return what's between the parens "( ----- )"
 	s = s.slice(start + 1, end);
 	if (format === "string") return s;

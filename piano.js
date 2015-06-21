@@ -21,22 +21,31 @@
  
  Piano.prototype.init = function() {
 	
-	// gather pitches (i.e. "6G", "5A")
-	this.pitches = extract(this.tokens[1], "array").map(reverseNote);
+	// piano collection, sets this.pitches and this.hits
+	if (this.tokens[1].indexOf("pianocol") === 0)
+			this.evaluateCollection();
+	else {
+		// gather pitches (i.e. "6G", "5A")
+		this.pitches = extract(this.tokens[1], "array").map(reverseNote);
 	
-	this.grabRhythm();
+		this.grabRhythm();
+	}
 	
+	// gain, offset, etc.
 	this.grabAttributes();
 	
- }
+}
 
 Piano.prototype.playBar = function() {
 	var measureStartTime = globalContext.currentTime;
+	
 	for (var i in this.hits) {
-		for (var j in this.pitches) {
-			var time = measureStartTime + this.hits[i];
-			var buffer = BUFFERS[this.pitches[j]];
-			this.play(time, buffer);
+		var time = measureStartTime + this.hits[i];
+		if (this.isCollection)
+			this.play(time, BUFFERS[this.pitches[i]]);
+		else {
+			for (var j in this.pitches)
+				this.play(time, BUFFERS[this.pitches[j]]);
 		}
 	}
 }
