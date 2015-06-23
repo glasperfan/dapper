@@ -7,7 +7,8 @@
  */
  
  Base = function(_tokens) {
-	this.tokens = _tokens;  		// i.e ['add', 'snare', 'on', '1', '2', '4']
+	this.tokens = _tokens;  	// i.e ['add', 'snare', 'on', '1', '2', '4']
+	this.pitches = [];			// melodic content, if any
 	this.hits = []; 			// timing (in seconds) of sound occurrences
 	this.offset = 0; 			// default beat offset (measured in fractions of a beat)
 	this.gain = 1.0;			// default gain
@@ -84,6 +85,8 @@ Base.prototype.grabAttributes = function() {
 	// if no explicit section, check for a defining section
 	if (buildingSection && this.sections.length === 0)
 		this.sections = [buildingSection];
+	else
+		this.sections = ["MASTER"];
 		
 	// remove "sect(_)" from tokens
 	var loc = -1;
@@ -213,7 +216,8 @@ function updateDisplay() {
 		ind_cell.innerHTML = i;
 		inst_cell.innerHTML = track.type;
 		sect_cell.innerHTML = track.sections.join(", ");
-		mel_cell.innerHTML = (track.pitches === undefined) ? '' : TRACKS[i].pitches.join(", ");
+		var melody_text = (track.pitches === undefined) ? '' : TRACKS[i].pitches.join(", ");
+		mel_cell.innerHTML = (melody_text.length > 20) ? melody_text.substring(0,15) + "..." : melody_text;
 		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
 	}
 }
@@ -268,7 +272,7 @@ function evaluateSectionEquation(equation) {
 		var component = components[j];
 		
 		var section = component.substring(1);
-		var relatedTracks = TRACKS;
+		var relatedTracks = TRACKS; // section = "ALL"
 		if (section !== "ALL")
 			relatedTracks = TRACKS.filter(function(d) { return _.contains(d.sections, section); });
 		
@@ -295,17 +299,30 @@ function trimWhiteSpace(str) {
  *
  */
  
+ TIME_SIGNATURE = "4/4";
+ BEATS_PER_MEASURE = 4;
+ OCTAVE_LOW = 1;
+ OCTAVE_HIGH = 7;
+ 
  // used for calculating frequencies
- BASE_PITCHES = {"c1" : 32.7032,
-				"cs1" : 34.6478, 
-				"d1" : 36.7081,
-				"ds1" : 38.8909,
-				"e1" : 41.2034,
-				"f1" : 43.6535,
-				"fs1" : 46.2493,
-				"g1" : 48.9994,
-				"gs1" : 51.9131,
-				"a1" : 55.0000,
-				"as1" : 58.2705,
-				"b1" : 61.7354
-				}
+ BASE_PITCHES = {
+	"c1" : 32.7032,
+	"cs1" : 34.6478, 
+	"d1" : 36.7081,
+	"ds1" : 38.8909,
+	"e1" : 41.2034,
+	"f1" : 43.6535,
+	"fs1" : 46.2493,
+	"g1" : 48.9994,
+	"gs1" : 51.9131,
+	"a1" : 55.0000,
+	"as1" : 58.2705,
+	"b1" : 61.7354
+};
+
+
+// scales
+SCALES = {
+	Amaj: ["a", "b", "cs", "d", "e", "fs", "gs"],
+	Bbmaj: ["as", "c", "d", "ds", "f", "g", "a"]
+};

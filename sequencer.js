@@ -80,6 +80,7 @@ Sequencer.prototype.init = function() {
 	// See script folder for how to download all of the mp3s
 	// See http://www.html5piano.ilinov.eu/full/ for another working example with these sounds.
 	this.PIANO = [
+		'0A','0As','0B','0C','0Cs','0D','0Ds','0E','0F','0Fs','0G','0Gs',
 		'1A','1As','1B','1C','1Cs','1D','1Ds','1E','1F','1Fs','1G','1Gs',
 		'2A','2As','2B','2C','2Cs','2D','2Ds','2E','2F','2Fs','2G','2Gs',
 		'3A','3As','3B','3C','3Cs','3D','3Ds','3E','3F','3Fs','3G','3Gs',
@@ -153,6 +154,7 @@ Sequencer.prototype.addMelodicInput = function() {
 	var newTrack = null;
 	if (this.tokens[1].indexOf("monosynth") === 0) newTrack = new Synth(this.tokens);
 	if (this.tokens[1].indexOf("piano") === 0) newTrack = new Piano(this.tokens);
+	if (this.tokens[1].indexOf("generator") === 0) newTrack = new Generator(this.tokens);
 	if (!newTrack) 
 		return this.onError("Unable to identify an instrument.");
 	if (newTrack.error)
@@ -220,7 +222,7 @@ Sequencer.prototype.play = function(isUpdate) {
 			this.lastPlayCommand = this.tokens[1];
 	
 	// "play", "play all"
-	if (this.lastPlayCommand === undefined || this.lastPlayCommand === "all")
+	if (this.lastPlayCommand === undefined)
 		PLAYTRACKS = TRACKS;
 	else {
 		// "play <sections>"
