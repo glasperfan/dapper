@@ -28,9 +28,13 @@
 	
 	// define the rules
 	this.params = extract(this.tokens[1], "string").split(",");
+	if (this.params.length === 3)
+		this.params.splice(1,0, null, null);
 	this.type = this.params[0];
-	this.scale = SCALES[this.params[1]];
-	this.range = this.params[2].split("+").map(function(d) { return parseInt(d, 10); });
+	if (this.type === "piano") {
+		this.scale = SCALES[this.params[1]];
+		this.range = this.params[2].split("+").map(function(d) { return parseInt(d, 10); });	
+	}
 	this.noteLength = parseFloat(this.params[3]);
 	this.occurrencePr = parseFloat(this.params[4]);
 	 
@@ -60,7 +64,6 @@
 			if (this.type === "piano") {
 				var randPitch =  this.scale[this.getRandomInt(0, this.scale.length)];
 				var randOctave = this.range[this.getRandomInt(0, this.range.length)];
-				console.log(randPitch + randOctave);
 				sound = reverseNote(randPitch + randOctave);
 			}
 			this.pitches.push(sound)
@@ -69,6 +72,8 @@
 			this.hits.push(i * noteDuration);	
 		}
 	}
+	
+	updateDisplay();
  }
  
  Generator.prototype.playBar = function() {
@@ -85,6 +90,9 @@
  Generator.prototype.errorChecking = function() {
 	 
 	try {
+		if (this.params.length !== 5)
+			throw "Invalid generator syntax."
+		
 		if (this.type !== "piano" && !_.contains(sequencer.NAMES, this.type))
 	 		throw "Invalid track type."
 		
