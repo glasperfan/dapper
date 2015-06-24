@@ -242,6 +242,10 @@ function sectionExists(section) {
 	return containsThisSection;
 }
 
+function typeExists(t) {
+	return _.contains(TYPES, t);
+}
+
 // Takes a statement like "a+b-c" 
 // Uses underscore.js to simplify things.
 function evaluateSectionEquation(equation) {

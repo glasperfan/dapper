@@ -106,6 +106,9 @@ Sequencer.prototype.init = function() {
 	window.onload = function() { 
 		document.getElementsByClassName('container')[0].style.display = "block";
 	}
+	
+	// set global types
+	TYPES = this.NAMES.concat(["piano", "monosynth"]);
 
 }
 
@@ -164,21 +167,57 @@ Sequencer.prototype.addMelodicInput = function() {
 
 Sequencer.prototype.removeLayer = function() {
 	var that = this;
-	if (this.tokens[1] === undefined) { // remove all
+	
+	// remove all (cmd: rm)
+	if (this.tokens[1] === undefined) {
 		for (var track in TRACKS) TRACKS[track].stop();
 		TRACKS = [];
-	} else if (this.tokens[1] === "last") { // remove most recently added track
+	} 
+	
+	// remove most recent (cmd: rm last)
+	else if (this.tokens[1] === "last") { // remove most recently added track
 		TRACKS[TRACKS.length - 1].stop();
 		TRACKS.pop();
 	} 
-	// TODO: remove by index (i.e. rm 5)
-	else {
-		var toDelete = function(d) { return d.type === that.tokens[1]; };
-		var toKeep = function(d) { return d.type !== that.tokens[1]; };
-		var remove = TRACKS.filter(toDelete);
-		for (var track in remove) remove[track].stop();
-		TRACKS = TRACKS.filter(toKeep);
+	
+	// remove by index (cmd: rm 5)
+	else if (!isNaN(this.tokens[1])) {
+		var index = parseInt(this.tokens[1]);
+		if (index < 0 || index >= TRACKS.length)
+			return this.onError("rm : Invalid index argument.");
+		TRACKS.splice(index, 1);
 	}
+	
+	// remove by section (cmd: rm A)
+	else if (sectionExists(this.tokens[1])) {
+		var section = this.tokens[1].toUpperCase();
+		TRACKS = TRACKS.filter(function(d) {
+			var keepIt = true;
+			if (_.contains(d.sections, section)) {
+				d.stop()
+				keepIt = false;
+			}
+			return keepIt;
+		});
+	}
+	
+	// remove by type (cmd: rm snare)
+	else if (typeExists(this.tokens[1])) {
+		TRACKS = TRACKS.filter(function(d) {
+			var keepIt = true;
+			if (d.type === that.tokens[1]) {
+				d.stop();
+				keepIt = false;
+			}
+			return keepIt;
+		});
+	}
+	
+	// else fail
+	else {
+		return this.onError("rm: Invalid argument.");
+	}
+	
 	this.update();
 }
 
