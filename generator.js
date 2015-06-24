@@ -72,8 +72,6 @@
 			this.hits.push(i * noteDuration);	
 		}
 	}
-	
-	updateDisplay();
  }
  
  Generator.prototype.playBar = function() {
@@ -81,7 +79,10 @@
 	for (var i in this.pitches)
 		this.play(time + this.hits[i], BUFFERS[this.pitches[i]]);
 	
-	// re-evaluate
+	// update the display with the current content
+	updateDisplay();
+	
+	// then re-evaluate
 	this.evaluate();
  }
  

@@ -306,10 +306,11 @@ Sequencer.prototype.show = function() {
 	else if (this.tokens[1] === "all" || this.tokens[1] === undefined) {
 		showSection = null;	
 		updateDisplay();
+		show(this.table, "table");
 	} 
 	
-	// display a section (if it is one)
-	else if (this.tokens[1] !== undefined) {
+	// display the section (if it exists)
+	else {
 		var section = this.tokens[1].toUpperCase();
 		if (sectionExists(section))
 			showSection = section;
@@ -317,9 +318,6 @@ Sequencer.prototype.show = function() {
 			return this.onError("No section exists called " + section);
 		updateDisplay();
 	}
-	
-	else
-		show(this.table, "table");
 }
 
 // hide tracks

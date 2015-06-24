@@ -50,62 +50,78 @@
 	<div class="screen" id="instructions">
 		<div class="wrapper">
 			<h1>Instructions</h1>
+			<p style="text-align:center"><i>(read what's useful, then make some music!)</i></p>
 			
-			<h4>adding instruments</h4>
-			<p>To add an instrument loop, specify the type of instrument and then the necessary melodic and rhythmic information. 
-				If melodic content is required, it is placed between parentheses next to the instrument name.
-				The general syntax is as follows.
+			<h4>add</h4>
+			<p>To add a track, specify the instrument and then the necessary melodic and rhythmic information. If melodic content is required, 
+				it is placed between parentheses next to the instrument name, comma separated
 			</p>
 			<code>add &lt;instrument&gt;(&lt;notes&gt;) &lt;rhythm&gt;</code>
-			<p>Below are a few examples.</p>
+			<p>For example:</p>
 			<code>add snare every 4th offset(0.5)</code>
-			<code>add hihat on 1 1.5 2.5 4 4.25 4.5 4.75</code>
+			<code>add hihat on 1 1.5 2.5 4 4.25 4.5 4.75 gain(0.6)</code>
 			<code>add piano(d5,e5,g6,as6) every 16th</code>
-			<p>
-				<span class="inline-code">every 4th</span> means it should recur on each beat, since the meter is 4/4.
-				<span class="inline-code">every 8th</span> refers to eighth notes, <span class="inline-code">every 16th</span></span> to 16th notes, and so on.
-				The <span class="inline-code">on</span> syntax dictates the exact beats. 1 refers to beat 1, 4 to beat 4.
-			</p>
-			<p>
-				The monosynth has a slightly different syntax. Rhythm is dictated by <span class="inline-code">len(__)</span>
-				The <span class="inline-code">len</span> value refers to how many beats each note should occupy.
-				Gain is specified with the <span class="inline-code">gain</span> attribute. It's value ranges from 0 to 1 (full volume).
-				So, for example:
-			</p>
+			<p>Use the <span class="ic">every</span> token to specify a uniform rhythmic pattern, like every beat, every 8th note, etc.</p>
+			<p>Use the <span class="ic">on</span> token to specify a more specific rhythm. 1 means "beat 1", 2.5 means "2 and", etc.</p>
+			
+			<h4>monosynth</h4>
+			<p>The monosynth has a slightly different syntax.</p>
+			<code>add monosynth(&lt;notes&gt;) len(...)</code>
+			<p><span class="ic">len()</span> denotes the length of each note, measured in fractions of a beat. So 1 = quarter note. For example:</p>
 			<code>add monosynth(c3,b2,g3,e3) len(2) gain(0.4)</code>
+			
 			<p>
 				Other tips:
 				<ul>
-					<li><span class="inline-code">offset</span> defines the number of beats to offset each note. So <span class="inline-code">offset(0.25)</span> offsets each note by a sixteenth beat. This is useful for creating arppegios.</li>
-					<li>Set the tempo by just running <span class="inline-code">tempo &lt;value&gt;</span>. Tempo can range from 60 to 240bpm.</li>
+					<li><span class="ic">offset</span> defines the number of beats to offset each note. So <span class="ic">offset(0.25)</span> offsets each note by a sixteenth beat. This is useful for creating arppegios.</li>
+					<li>Set the tempo by just running <span class="ic">tempo &lt;value&gt;</span>. Tempo can range from 60 to 240bpm.</li>
 					<li>The meter is currently fixed at 4/4. Hoping to make that adjustable soon.</li>
 				</ul>
 			</p>
 			
 			<h4>notes</h4>
-			<p>
-				Notes are input in midi format. <span class="inline-code">c4</span>, for example, is Middle C - the 4th 'C' on the keyboard starting from the left. 
-				Multiple notes can be added by simply placing a comma in between them. 
-				The range of possible notes is limited to the range of an 88-key piano: <span class="inline-code">a1</span> to <span class="inline-code">7c</span>.
+			<p>Notes are represented in midi format. So <span class="ic">c4</span> = Middle C (the 4th 'C' up on the piano)</p>
+			<p>Currently enharmonics are not supported (changing soon...). For now, type 'as' instead of 'bb'. (A-sharp vs. B-flat)</p>
+			<p>Multiple notes can be added by simply placing a comma in between them</p>
+			<p>Possible notes span almost all of an 88-key piano: c0 to c7</p>
 			</p>
+			
+			<h4>define</h4>
+			<p>Define a "section", or a set of tracks, as follows: <span class="ic">define &lt;section&gt;</span></p>
+			<p>Define a section, alternatively, via an equation of other sections. For example, <span class="ic">define c=a+b-d</span></p>
 			
 			<h4>remove instruments</h4>
 			<p>
 				You can remove instruments in a few ways.
 				<ul>
-					<li><span class="inline-code">rm last</span> removes the last added track.</li>
-					<li><span class="inline-code">rm &lt;instrument&gt;</span> removes all tracks for the instrument.</li>
-					<li><span class="inline-code">rm</span> simply removes everything.</li>
+					<li><span class="ic">rm</span> simply removes everything</li>
+					<li><span class="ic">rm last</span> removes the last added track</li>
+					<li><span class="ic">rm &lt;section&gt;</span> removes all tracks in that section</li>
+					<li><span class="ic">rm &lt;instrument&gt;</span> removes all tracks of that type of instrument (piano, hihat, etc.)</li>
 				</ul>
 			</p>
-			<h4>play and pause</h4>
-			<p><span class="inline-code">play</span> begins the loop.</p>
-			<p><span class="inline-code">pause</span> pauses it.</p>
-			<p><span class="inline-code">stop</span> stops it and removes the tracks.</p>
-				That's all there is to it.
-			</p>
-			<br>
-			<p>All questions and comments are much appreciated! Get in touch with me on my <a href="/#contact">contact</a> page.</p>
+			<h4>play</h4>
+			<p>The basic command is, you guessed it, <span class="ic">play</span>. That begins the loop. But maybe you only want to play a few of the tracks.</p>
+			<p>With <span class="ic">play</span>, you can specify an <i>equation</i> that defines the subset of tracks to play. For example:</p>
+			<ul>
+				<li><span class="ic">play a</span> plays all tracks in section A</li>
+				<li><span class="ic">play a+b</span> plays all tracks in sections A and B</li>
+				<li><span class="ic">play c-a+d</span> plays all tracks in C that aren't in A, plus the ones in D</li>
+				<li><span class="ic">play all-a+a</span> plays all tracks except the ones in A, plus the ones in A...so all tracks. it's an example</li>
+			</ul>
+			
+			<h4>pause and stop</h4>
+			<p><span class="ic">pause</span> pauses the sequencer</p>
+			<p><span class="ic">stop</span> pauses the sequencer and deletes the tracks</p>
+			
+			<h4>show/hide</h4>
+			<p><span class="ic">show/hide</span> will show/hide all tracks</p>
+			<p><span class="ic">show &lt;section&gt;</span> displays tracks for that section</p>
+			<p><span class="ic">show/hide instructions</span> will show/hide the instructions page (useful when you have a lot of tracks)</p>
+			
+			<h4>do you like this??</h4>
+			<p>All questions and comments are much appreciated. Political, existential or otherwise.</p>
+			<p>Get in touch with me <a href="/#contact">here</a>. I respond quickly.</p>
 		</div>
 		<div class="footer">
 			<span>Copyright &#169; 2015 Hugh Zabriskie. All rights reserved.</span>
@@ -117,11 +133,9 @@
 	
 	// THE TODOs
 	// 1. tab completion
-	// 2. fix display bug with generator and non-generators
-	// 3. fix errors with setting sections, and gain on generators
-	// 4. add "set" functionality
+	// 3. add "set" functionality
 	// 4. Big goal: allow for collaboration and saving of tracks
-	// 5. update instructions
+	// 5. update instructionss
 	
 	var command = document.getElementById("command");
 	

@@ -101,5 +101,5 @@ html, body {
 
 p { margin: 15px 0; }
 code { display: block; margin: 10px 0; }
-.inline-code { font-family: monospace; }
+.ic { font-family: monospace; } /* ic = inline-code */
 li { margin: 8px 0; }
