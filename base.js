@@ -59,7 +59,7 @@ Base.prototype.grabAttributes = function() {
 	
 	for (var i = 4; i < this.tokens.length; i++) {
 		// offset
-		if (this.tokens[i].indexOf("offset") > -1) {
+		if (this.tokens[i].indexOf("offset") === 0) {
 			this.offset = extract(this.tokens[i], "value");
 			if (this.offset < 0)
 				return this.onError("Invalid offset - must be a postive value representing the length of the beat offset.");
@@ -67,14 +67,14 @@ Base.prototype.grabAttributes = function() {
 		}
 		
 		// gain
-		if (this.tokens[i].indexOf("gain") > -1) {
+		if (this.tokens[i].indexOf("gain") === 0) {
 			this.gain = extract(this.tokens[i], "value");
 			if (this.gain < 0)
 				return this.onError("Invalid gain - must be postive value (1.0 = default).");
 		}
 		
 		// section
-		if (this.tokens[i].indexOf("sect") > -1) {
+		if (this.tokens[i].indexOf("sect") === 0) {
 			this.sections = [extract(this.tokens[i], "string").toUpperCase()];
 		}
 	}
@@ -82,10 +82,11 @@ Base.prototype.grabAttributes = function() {
 	// add offset
 	this.hits = this.hits.map(function(d) { return d + that.offset; });
 	
-	// if no explicit section, check for a defining section
+	// check for a defining section
+	// otherwise, put it in MASTER
 	if (buildingSection && this.sections.length === 0)
 		this.sections = [buildingSection];
-	else
+	else if (this.sections.length === 0)
 		this.sections = ["MASTER"];
 		
 	// remove "sect(_)" from tokens
