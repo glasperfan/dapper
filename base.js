@@ -328,6 +328,16 @@ function trimWhiteSpace(str) {
 
 // scales
 SCALES = {
-	Amaj: ["a", "b", "cs", "d", "e", "fs", "gs"],
-	Bbmaj: ["as", "c", "d", "ds", "f", "g", "a"]
+	amaj: 	["a", "b", "cs", "d", "e", "fs", "gs"],
+	asmaj: 	["as", "c", "d", "ds", "f", "g", "a"],
+	bmaj: 	["b", "cs", "ds", "e", "fs", "gs", "as"],
+	cmaj: 	["c", "d", "e", "f", "g", "a", "b"],
+	csmaj:	["cs", "ds", "f", "fs", "gs", "as", "c"],
+	dmaj:	["d", "e", "fs", "g", "a", "b", "cs"],
+	dsmaj:  ["ds", "f", "g", "gs", "as","c", "d"],
+	emaj:	["e", "fs", "gs", "a", "b", "cs", "ds"],
+	fmaj:	["f", "g", "a", "as", "c", "d", "e"],
+	fsmaj:	["fs", "gs", "as", "b", "cs", "ds", "f"],
+	gmaj:	["g", "a", "b", "c", "d", "e", "fs"],
+	gsmaj:	["gs", "as", "c", "cs", "ds", "f", "fs"]
 };

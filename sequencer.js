@@ -109,7 +109,6 @@ Sequencer.prototype.init = function() {
 	
 	// set global types
 	TYPES = this.NAMES.concat(["piano", "monosynth"]);
-
 }
 
 Sequencer.prototype.evaluateCommand = function(c) {
