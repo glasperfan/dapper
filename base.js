@@ -5,8 +5,8 @@
  * Built by Hugh Zabriskie.
  *
  */
- 
- Base = function(_tokens) {
+
+Base = function (_tokens) {
 	this.tokens = _tokens;  	// i.e ['add', 'snare', 'on', '1', '2', '4']
 	this.pitches = [];			// melodic content, if any
 	this.hits = []; 			// timing (in seconds) of sound occurrences
@@ -15,19 +15,18 @@
 	this.sections = []; 		// if the tracks belongs to a section
 	this.isCollection = false;	// is it a collection track
 	this.error = null;			// errors
- }
+};
 
-Base.prototype.grabRhythm = function() {
-	var that = this;
+Base.prototype.grabRhythm = function () {
 	var beatDuration = (60 / tempo);
-	
+
 	this.hits = [];
 	
 	// "on 1 2 4"
 	if (this.tokens[2] === "on") {
 		var beats = this.tokens.slice(3);
 		// remove sect() and offset(), etc.
-		beats = beats.map(parseFloat).filter(function(d) { return d === d; });
+		beats = beats.map(parseFloat).filter(function (d) { return d === d; });
 		if (beats.length === 0)
 			return this.onError("You forgot to specify beats. i.e. '1 2 4'");
 		for (var i = 0; i < beats.length; i++) {
@@ -51,12 +50,12 @@ Base.prototype.grabRhythm = function() {
 			pause += denomDuration;
 		}
 	}
-}
- 
-Base.prototype.grabAttributes = function() {
+};
+
+Base.prototype.grabAttributes = function () {
 	var that = this;
 	var beatDuration = 60 / tempo;
-	
+
 	for (var i = 4; i < this.tokens.length; i++) {
 		// offset
 		if (this.tokens[i].indexOf("offset") === 0) {
@@ -80,7 +79,7 @@ Base.prototype.grabAttributes = function() {
 	}
 	
 	// add offset
-	this.hits = this.hits.map(function(d) { return d + that.offset; });
+	this.hits = this.hits.map(function (d) { return d + that.offset; });
 	
 	// check for a defining section
 	// otherwise, put it in MASTER
@@ -90,56 +89,55 @@ Base.prototype.grabAttributes = function() {
 		this.sections = ["MASTER"];
 		
 	// remove "sect(_)" from tokens
-	var loc = -1;
-	this.tokens.forEach(function(d, i) {
-		if (d.indexOf("sect") !== -1) 
+	this.tokens.forEach(function (d, i) {
+		if (d.indexOf("sect") !== -1)
 			d = "";
 	});
- }
+};
  
- // Convert: add pianocol(as5-1,f5-1.5,d5-2,a5-2.5,f5-2.5)
- // to a set of pitches and rhythms
- Base.prototype.evaluateCollection = function() {
-	 var beatDuration = (60 / tempo);
-	 this.isCollection = true;
-	 try {
-		 var collection = extract(this.tokens[1], "string").split(",");
-		 if (collection.length < 1) throw "Invalid syntax."
-		 this.pitches = [];
-		 this.hits = [];
-		 for (var c in collection) {
-			 var item = collection[c].split("-");
-			 if (item.length !== 2) throw "Invalid syntax."
-			 this.pitches[c] = item[0];
-			 this.hits[c] = (parseFloat(item[1]) - 1) * beatDuration;
-		 }
-		 this.pitches = this.pitches.map(reverseNote);
-	 }
-	 catch(err) {
-		 return sequencer.onError(err);
-	 }
- }
+// Convert: add pianocol(as5-1,f5-1.5,d5-2,a5-2.5,f5-2.5)
+// to a set of pitches and rhythms
+Base.prototype.evaluateCollection = function () {
+	var beatDuration = (60 / tempo);
+	this.isCollection = true;
+	try {
+		var collection = extract(this.tokens[1], "string").split(",");
+		if (collection.length < 1) throw "Invalid syntax."
+		this.pitches = [];
+		this.hits = [];
+		for (var c in collection) {
+			var item = collection[c].split("-");
+			if (item.length !== 2) throw "Invalid syntax."
+			this.pitches[c] = item[0];
+			this.hits[c] = (parseFloat(item[1]) - 1) * beatDuration;
+		}
+		this.pitches = this.pitches.map(reverseNote);
+	}
+	catch (err) {
+		return sequencer.onError(err);
+	}
+};
 
  
 // Create a buffer source for each sound occurrence
-Base.prototype.play = function(time, buffer) {
+Base.prototype.play = function (time, buffer) {
 	var source = globalContext.createBufferSource();
 	var gain = globalContext.createGain();
 	source.buffer = (buffer !== undefined) ? buffer : this.buffer;
-  	gain.gain.value = this.gain;
+	gain.gain.value = this.gain;
 	source.connect(gain);
 	gain.connect(globalContext.destination);
-  	source.start(time);
-}
+	source.start(time);
+};
 
 
-Base.prototype.stop = function() {}
-Base.prototype.pause = function() {}
+Base.prototype.stop = function ()	{ /* should be overridden */ };
+Base.prototype.pause = function () 	{ /* should be overridden */ };
  
 // default error logging method
-Base.prototype.onError = function(reason) {
+Base.prototype.onError = function (reason) {
 	this.error = reason;
-}
+};
 
 
 
@@ -158,7 +156,7 @@ function timeUntilMeasureEnd() {
  
 // convert 'g6' or '6G', or 'fs6' to '6Fs'
 function reverseNote(note) {
-	var rev = note[note.length -1] + note[0].toUpperCase();
+	var rev = note[note.length - 1] + note[0].toUpperCase();
 	return (note.length === 3) ? rev + "s" : rev;
 }
 
@@ -166,7 +164,7 @@ function reverseNote(note) {
 function extract(s, format) {
 	// check syntax
 	var start = s.indexOf("("), end = s.indexOf(")");
-	if (start >= end || end != s.length - 1)
+	if (start >= end || end !== s.length - 1)
 		return sequencer.onError("Syntax error. Check parentheses.");
 	// return what's between the parens "( ----- )"
 	s = s.slice(start + 1, end);
@@ -179,7 +177,7 @@ function extract(s, format) {
 // converts note names to frequencies
 function noteToFrequency(note) {
 	var noteName = note.slice(0, note.length - 1);		// cs1 --> cs
-	var noteOctave = parseInt(note[note.length -1]);	// cs1 --> 1
+	var noteOctave = parseInt(note[note.length - 1]);	// cs1 --> 1
 	var baseFreq = BASE_PITCHES[noteName + "1"];
 	var octaveDiff = noteOctave - 1;
 	return baseFreq * Math.pow(2, octaveDiff);
@@ -196,13 +194,13 @@ function updateDisplay() {
 	
 	// filter tracks to be shown
 	if (showSection)
-		DISPLAYTRACKS = TRACKS.filter(function(d) { return _.contains(d.sections, showSection); });
+		DISPLAYTRACKS = TRACKS.filter(function (d) { return _.contains(d.sections, showSection); });
 	else
 		DISPLAYTRACKS = TRACKS;
 	
 	// delete rows and refresh the table
-	while(table.rows.length > 1) {
-  		table.deleteRow(1); // delete second row, avoid header
+	while (table.rows.length > 1) {
+		table.deleteRow(1); // delete second row, avoid header
 	}
 	for (var i = 0; i < DISPLAYTRACKS.length; i++) {
 		var track = DISPLAYTRACKS[i];
@@ -218,7 +216,7 @@ function updateDisplay() {
 		inst_cell.innerHTML = track.type;
 		sect_cell.innerHTML = track.sections.join(", ");
 		var melody_text = (track.pitches === undefined) ? '' : TRACKS[i].pitches.join(", ");
-		mel_cell.innerHTML = (melody_text.length > 20) ? melody_text.substring(0,15) + "..." : melody_text;
+		mel_cell.innerHTML = (melody_text.length > 20) ? melody_text.substring(0, 15) + "..." : melody_text;
 		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
 	}
 }
@@ -229,17 +227,17 @@ function updateDisplay() {
 // In other words, an empty section doesn't exist.
 function sectionExists(section) {
 	section = section.toUpperCase();
-	
+
 	if (section === "ALL") // a reserved keyword for all tracks
 		return true;
-	
+
 	var containsThisSection = false;
 	section = section.toUpperCase();
-	TRACKS.forEach(function(d) {
+	TRACKS.forEach(function (d) {
 		if (_.contains(d.sections, section))
 			containsThisSection = true;
 	});
-	
+
 	return containsThisSection;
 }
 
@@ -253,7 +251,7 @@ function evaluateSectionEquation(equation) {
 	var sections = equation.toUpperCase().split(/[+/-]/);
 	
 	// check for valid sections
-	if (!_.every(sections, function(d) { return sectionExists(d); }))	
+	if (!_.every(sections, function (d) { return sectionExists(d); }))
 		return null;
 	
 	// process equation
@@ -271,25 +269,25 @@ function evaluateSectionEquation(equation) {
 		if (i === equation.length - 1)
 			components.push(piece);
 	}
-	
+
 	var result = [];
 	for (var j in components) {
 		var component = components[j];
-		
+
 		var section = component.substring(1);
 		var relatedTracks = TRACKS; // section = "ALL"
 		if (section !== "ALL")
-			relatedTracks = TRACKS.filter(function(d) { return _.contains(d.sections, section); });
-		
+			relatedTracks = TRACKS.filter(function (d) { return _.contains(d.sections, section); });
+
 		var mode = component[0];
 		if (mode === '+')
 			result = _.union(result, relatedTracks);
 		if (mode === "-")
 			result = _.difference(result, relatedTracks);
 	}
-	
+
 	return result;
-	
+
 }
 
 function trimWhiteSpace(str) {
@@ -303,41 +301,41 @@ function trimWhiteSpace(str) {
  * CONSTANTS
  *
  */
+
+TIME_SIGNATURE = "4/4";
+BEATS_PER_MEASURE = 4;
+OCTAVE_LOW = 1;
+OCTAVE_HIGH = 7;
  
- TIME_SIGNATURE = "4/4";
- BEATS_PER_MEASURE = 4;
- OCTAVE_LOW = 1;
- OCTAVE_HIGH = 7;
- 
- // used for calculating frequencies
- BASE_PITCHES = {
-	"c1" : 32.7032,
-	"cs1" : 34.6478, 
-	"d1" : 36.7081,
-	"ds1" : 38.8909,
-	"e1" : 41.2034,
-	"f1" : 43.6535,
-	"fs1" : 46.2493,
-	"g1" : 48.9994,
-	"gs1" : 51.9131,
-	"a1" : 55.0000,
-	"as1" : 58.2705,
-	"b1" : 61.7354
+// used for calculating frequencies
+BASE_PITCHES = {
+	"c1": 32.7032,
+	"cs1": 34.6478,
+	"d1": 36.7081,
+	"ds1": 38.8909,
+	"e1": 41.2034,
+	"f1": 43.6535,
+	"fs1": 46.2493,
+	"g1": 48.9994,
+	"gs1": 51.9131,
+	"a1": 55.0000,
+	"as1": 58.2705,
+	"b1": 61.7354
 };
 
 
 // scales
 SCALES = {
-	amaj: 	["a", "b", "cs", "d", "e", "fs", "gs"],
-	asmaj: 	["as", "c", "d", "ds", "f", "g", "a"],
-	bmaj: 	["b", "cs", "ds", "e", "fs", "gs", "as"],
-	cmaj: 	["c", "d", "e", "f", "g", "a", "b"],
-	csmaj:	["cs", "ds", "f", "fs", "gs", "as", "c"],
-	dmaj:	["d", "e", "fs", "g", "a", "b", "cs"],
-	dsmaj:  ["ds", "f", "g", "gs", "as","c", "d"],
-	emaj:	["e", "fs", "gs", "a", "b", "cs", "ds"],
-	fmaj:	["f", "g", "a", "as", "c", "d", "e"],
-	fsmaj:	["fs", "gs", "as", "b", "cs", "ds", "f"],
-	gmaj:	["g", "a", "b", "c", "d", "e", "fs"],
-	gsmaj:	["gs", "as", "c", "cs", "ds", "f", "fs"]
+	amaj: ["a", "b", "cs", "d", "e", "fs", "gs"],
+	asmaj: ["as", "c", "d", "ds", "f", "g", "a"],
+	bmaj: ["b", "cs", "ds", "e", "fs", "gs", "as"],
+	cmaj: ["c", "d", "e", "f", "g", "a", "b"],
+	csmaj: ["cs", "ds", "f", "fs", "gs", "as", "c"],
+	dmaj: ["d", "e", "fs", "g", "a", "b", "cs"],
+	dsmaj: ["ds", "f", "g", "gs", "as", "c", "d"],
+	emaj: ["e", "fs", "gs", "a", "b", "cs", "ds"],
+	fmaj: ["f", "g", "a", "as", "c", "d", "e"],
+	fsmaj: ["fs", "gs", "as", "b", "cs", "ds", "f"],
+	gmaj: ["g", "a", "b", "c", "d", "e", "fs"],
+	gsmaj: ["gs", "as", "c", "cs", "ds", "f", "fs"]
 };

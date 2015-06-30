@@ -24,7 +24,7 @@
 	 Base.call(this, _tokens);
 	 
 	 this.init();
- }
+ };
  
  // inheritance details
  Synth.prototype = Object.create(Base.prototype);
@@ -63,7 +63,7 @@
 	// start oscillator
 	this.oscillator.start();
 	
- }
+ };
 
 Synth.prototype.playBar = function() {
 	// if the synth loop isn't already running, start it
@@ -78,7 +78,7 @@ Synth.prototype.playBar = function() {
 			counter = (counter + 1) % num_pitches;
 		}, this.noteDuration);
 	}
-}
+};
  
 Synth.prototype.stop = function() {
 	Base.prototype.stop.call(this);
@@ -88,7 +88,7 @@ Synth.prototype.stop = function() {
 		that.loopOn = false;
 		that.oscillator.stop();
 	}, timeUntilMeasureEnd());
-}
+};
 
 Synth.prototype.pause = function() {
 	Base.prototype.pause.call(this);
@@ -98,7 +98,7 @@ Synth.prototype.pause = function() {
 		clearInterval(that.interval);
 	}, timeUntilMeasureEnd());
 	this.loopOn = false;
-}
+};
 
 // TODO: helper function to validate notes
 // function validateNotes(note) {}

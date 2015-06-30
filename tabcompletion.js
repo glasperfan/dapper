@@ -59,26 +59,22 @@ function TabCompletion() {
 		
 		// invalid syntax or completed token
 		if (closures < 0 || command[i - 1] === ")") {
-			console.log("nothing");
 			return [];
 		}
 
 		// just finished token, so offer all attributes
 		else if (closures === 0 && opens > 0 && command[i - 1] === " ") {
-			console.log("all attributes");
 			return this.attributes;
 		}
 		
 		// return attributes
 		else if (closures === 0 && opens > 0) {
 			this.possibleOptions = this.attributes;
-			console.log("attributes");
 			command = command.substring(command.lastIndexOf(" ") + 1);
 		}
 
 		// typical values
 		else if (closures > 0 && opens > 0) {
-			console.log("typical values");
 			this.possibleOptions = this.typicalValues;
 			command = command.substring(command.lastIndexOf("(") + 1);
 			command = command.split(",");
@@ -89,10 +85,8 @@ function TabCompletion() {
 		// return commands
 		else {
 			this.possibleOptions = this.commands;
-			console.log("commands");
 		}
 
-		console.log("command: " + command);
 
 		while (i > 0) {
 			var fragment = command.slice(0, i)
