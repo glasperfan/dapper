@@ -5,34 +5,34 @@
  *
  */
  
- Track = function(_buffer, _tokens) {
-	 this.buffer = _buffer; // audioBuffer object
-	 this.type = _tokens[1];
-	 this.hits = [];
-	 this.error = null;
-	 this.offset = 0;
-	 this.once = false;
+Drum = function (_tokens) {
+	this.type = _tokens[1];
+	this.buffer = BUFFERS.drums[this.type];
+	this.hits = [];
+	this.error = null;
+	this.offset = 0;
+	this.once = false;
 	 
-	 // call the parent constructor
-	 Base.call(this, _tokens);
-	 
-	 this.init();
- }
+	// call the parent constructor
+	Base.call(this, _tokens);
+
+	this.init();
+};
  
  // inheritance details
- Track.prototype = Object.create(Base.prototype);
- Track.prototype.constructor = Track;
+ Drum.prototype = Object.create(Base.prototype);
+ Drum.prototype.constructor = Drum;
  
- Track.prototype.init = function() {
-	
-	this.grabRhythm();
-	
-	this.grabAttributes();
-	
- }
+ Drum.prototype.init = function () {
 
-Track.prototype.playBar = function() {
+	 this.grabRhythm();
+
+	 this.grabAttributes();
+
+ };
+
+Drum.prototype.playBar = function () {
 	var time = globalContext.currentTime;
 	for (var i in this.hits)
-		this.play(time + this.hits[i]);
-}
+		this.play(time + this.hits[i], this.buffer);
+};

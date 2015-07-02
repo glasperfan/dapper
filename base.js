@@ -123,7 +123,7 @@ Base.prototype.evaluateCollection = function () {
 Base.prototype.play = function (time, buffer) {
 	var source = globalContext.createBufferSource();
 	var gain = globalContext.createGain();
-	source.buffer = (buffer !== undefined) ? buffer : this.buffer;
+	source.buffer = buffer;
 	gain.gain.value = this.gain;
 	source.connect(gain);
 	gain.connect(globalContext.destination);
@@ -213,11 +213,17 @@ function updateDisplay() {
 		var rhm_cell = row.insertCell(4);
 
 		ind_cell.innerHTML = i;
+
 		inst_cell.innerHTML = track.type;
+
 		sect_cell.innerHTML = track.sections.join(", ");
+
 		var melody_text = (track.pitches === undefined) ? '' : TRACKS[i].pitches.join(", ");
 		mel_cell.innerHTML = (melody_text.length > 20) ? melody_text.substring(0, 15) + "..." : melody_text;
+
 		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
+		if (track instanceof Generator)
+			rhm_cell.innerHTML = track.beats.join(", ");
 	}
 }
 

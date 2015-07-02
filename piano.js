@@ -42,10 +42,10 @@ Piano.prototype.playBar = function() {
 	for (var i in this.hits) {
 		var time = measureStartTime + this.hits[i];
 		if (this.isCollection)
-			this.play(time, BUFFERS[this.pitches[i]]);
+			this.play(time, BUFFERS.piano[this.pitches[i]]);
 		else {
 			for (var j in this.pitches)
-				this.play(time, BUFFERS[this.pitches[j]]);
+				this.play(time, BUFFERS.piano[this.pitches[j]]);
 		}
 	}
 }

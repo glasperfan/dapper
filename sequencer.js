@@ -5,7 +5,7 @@
  *
  */
 
-Sequencer = function (_tempo, _phraseLength) {
+Sequencer = function (_tempo) {
 	tempo = _tempo; 		// global tempo
 	TRACKS = []; 			// global track container
 	PLAYTRACKS = [];		// global list of playing tracks
@@ -13,7 +13,6 @@ Sequencer = function (_tempo, _phraseLength) {
 	loopOn = false; 		// is event loop running?
 	buildingSection = null;	// currently defining this section
 	showSection = null;		// section displayed in the track table
-	this.phraseLength = _phraseLength; // TO DO: use this
 	measureStart = 0.0; 	// store most recent measure start time
 	
 	this.table = document.getElementById("tracks-table");
@@ -36,8 +35,11 @@ Sequencer.prototype.init = function () {
 		return;
 	}
 	
-	// filenames and paths
-	this.NAMES = [
+	// stores all buffer objects
+	BUFFERS = new Object();
+	
+	// drums
+	this.DRUMS = [
 		'kick',
 		'ekick',
 		'dry-kick',
@@ -57,25 +59,22 @@ Sequencer.prototype.init = function () {
 		'crash-3'
 	];
 
-	this.PATHS = this.NAMES.map(function (d) { return "/drums/" + d + ".wav"; });
-	BUFFERS = {}; // buffer objects
+	this.DRUMPATHS = this.DRUMS.map(function (d) { return "/drums/" + d + ".wav"; });
 
-
+	
 	// custom class for loading multiple sound clips
 	// thanks to Boris Smus (http://www.html5rocks.com/en/tutorials/webaudio/intro/js/buffer-loader.js)
 	this.drumLoader = new BufferLoader(
 		globalContext,
-		this.PATHS,
-		finishedLoading);
+		this.DRUMPATHS,
+		function (bufferList) {
+			BUFFERS.drums = new Object();
+			for (var index in that.DRUMS)
+				BUFFERS.drums[that.DRUMS[index]] = bufferList[index];
+		});
 	this.drumLoader.load();
 
-	// finish loading buffers (audio files)
-	function finishedLoading(bufferList) {
-		for (var index in that.NAMES) {
-			var name = that.NAMES[index];
-			BUFFERS[name] = bufferList[index];
-		}
-	}
+
 	
 	// piano filenames
 	// Retrieved from http://pianosounds.pixelass.com/tones/grand-piano/6Cs.mp3
@@ -91,18 +90,38 @@ Sequencer.prototype.init = function () {
 		'6A', '6As', '6B', '6C', '6Cs', '6D', '6Ds', '6E', '6F', '6Fs', '6G', '6Gs',
 		'7C'
 	];
-
-	PIANOBUFFERS = {}; // piano buffer objects
+	
 	this.PIANOPATHS = this.PIANO.map(function (d) { return "/piano/" + d + ".mp3"; });
-
+	
 	this.pianoLoader = new BufferLoader(
 		globalContext,
 		this.PIANOPATHS,
 		function (bufferList) {
+			BUFFERS.piano = new Object();
 			for (var index in that.PIANO)
-				BUFFERS[that.PIANO[index]] = bufferList[index];
+				BUFFERS.piano[that.PIANO[index]] = bufferList[index];
 		});
 	this.pianoLoader.load();
+	
+	
+	// acoustic guitar files
+	this.AGTR = this.PIANO.slice(
+		this.PIANO.indexOf('3C'),
+		this.PIANO.indexOf('6C')
+		);
+	
+	this.AGTRPATHS = this.AGTR.map(function (d) { return "/agtr/" + d + ".mp3"; });
+	
+	this.agtrLoader = new BufferLoader(
+		globalContext,
+		this.AGTRPATHS,
+		function (bufferList) {
+			BUFFERS.agtr = new Object();
+			for (var index in that.AGTR)
+				BUFFERS.agtr[that.AGTR[index]] = bufferList[index];
+		});
+	this.agtrLoader.load();
+	
 	
 	// show terminal line when done loading 
 	window.onload = function () {
@@ -110,8 +129,12 @@ Sequencer.prototype.init = function () {
 	};
 	
 	// set global types
-	TYPES = this.NAMES.concat(["piano", "monosynth"]);
+	TYPES = this.DRUMS.concat(["piano", "monosynth", "agtr"]);
+	
 };
+
+
+
 
 Sequencer.prototype.evaluateCommand = function (c) {
 	this.tokens = c.split(" ");
@@ -130,6 +153,8 @@ Sequencer.prototype.evaluateCommand = function (c) {
 	return this.onError(this.tokens[0] + " is not a command.");
 };
 
+
+
 Sequencer.prototype.addLayer = function () {
 	if (this.tokens[1] === undefined)
 		this.onError("No instrument defined. Try: add snare on 1 2 4");
@@ -137,7 +162,7 @@ Sequencer.prototype.addLayer = function () {
 	else if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0)
 		this.addMelodicInput();
 
-	else if (this.NAMES.indexOf(this.tokens[1]) < 0)
+	else if (this.DRUMS.indexOf(this.tokens[1]) < 0)
 		this.onError("No instrument exists with the name: '" + this.tokens[1] + "'.");
 
 	else if (this.tokens[2] === undefined)
@@ -145,14 +170,15 @@ Sequencer.prototype.addLayer = function () {
 
 	else {
 		// rhythmic input
-		var newLayer = BUFFERS[this.tokens[1]];
-		var newTrack = new Track(newLayer, this.tokens);
+		var newTrack = new Drum(this.tokens);
 		if (newTrack.error)
 			return this.onError(newTrack.error);
 		TRACKS.push(newTrack);
 	}
 	this.update();
 };
+
+
 
 Sequencer.prototype.addMelodicInput = function () {
 	var newTrack = null;
@@ -165,6 +191,9 @@ Sequencer.prototype.addMelodicInput = function () {
 		return this.onError(newTrack.error);
 	TRACKS.push(newTrack);
 };
+
+
+
 
 Sequencer.prototype.removeLayer = function () {
 	var that = this;
@@ -222,6 +251,8 @@ Sequencer.prototype.removeLayer = function () {
 	this.update();
 };
 
+
+
 // this is where the sequencing happens
 Sequencer.prototype.eventLoop = function () {
 	measureStart = globalContext.currentTime;
@@ -229,6 +260,9 @@ Sequencer.prototype.eventLoop = function () {
 	for (var index in PLAYTRACKS)
 		PLAYTRACKS[index].playBar();
 };
+
+
+
 
 Sequencer.prototype.setTempo = function () {
 	var that = this;
@@ -253,6 +287,9 @@ Sequencer.prototype.setTempo = function () {
 		setTimeout(function () { that.play(); }, waitTime);
 	}
 };
+
+
+
 
 // Start tracks - synchronized calls to eventLoop
 // TODO: fix tempo issue. add a track, play, set tempo or play then set tempo
@@ -280,6 +317,9 @@ Sequencer.prototype.play = function (isUpdate) {
 	}
 };
 
+
+
+
 // Clear tracks and end event loop.
 Sequencer.prototype.stopAll = function () {
 	for (var t in TRACKS)
@@ -289,6 +329,9 @@ Sequencer.prototype.stopAll = function () {
 	this.pause();
 };
 
+
+
+
 // Pause loop
 Sequencer.prototype.pause = function () {
 	for (var t in TRACKS)
@@ -296,6 +339,9 @@ Sequencer.prototype.pause = function () {
 	clearInterval(this.interval);
 	loopOn = false;
 };
+
+
+
 
 // show tracks
 Sequencer.prototype.show = function () {
@@ -321,6 +367,9 @@ Sequencer.prototype.show = function () {
 	}
 };
 
+
+
+
 // hide tracks
 Sequencer.prototype.hide = function () {
 	if (this.tokens[1] === "instructions")
@@ -328,6 +377,8 @@ Sequencer.prototype.hide = function () {
 	else
 		hide(this.table);
 };
+
+
 
 
 Sequencer.prototype.define = function () {
@@ -371,6 +422,9 @@ Sequencer.prototype.define = function () {
 		this.onInfo("Back to master...");
 };
 
+
+
+
 Sequencer.prototype.update = function () {
 	updateDisplay();
 	// if it's already looping, generate a new play command to update PLAYTRACKS
@@ -379,10 +433,12 @@ Sequencer.prototype.update = function () {
 };
 
 
+
 // TODO: make this different than onError?
 Sequencer.prototype.onInfo = function (reason) {
 	this.onError(reason);
 };
+
 
 
 Sequencer.prototype.onError = function (reason) {

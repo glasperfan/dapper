@@ -24,14 +24,12 @@ function TabCompletion() {
 	for (var i = 0; i < this.attrs.length; i++)
 		this.attributes[i] = this.attrs[i].innerHTML;
 
-	this.typicalValues = sequencer.NAMES; // instruments
-	this.typicalValues = this.typicalValues.concat(Object.keys(SCALES))
-	this.typicalValues.push("piano");
-	this.typicalValues.push("monosynth");
+	this.typicalValues = TYPES; // instruments
+	this.typicalValues = this.typicalValues.concat(Object.keys(SCALES)); // scales
 	for (var i = 0; i <= 1; i += 0.1)
-		this.typicalValues.push(i.toString());
+		this.typicalValues.push(i.toString()); // gain, probability, etc.
 	for (var i = 1; i < 5; i += 0.25)
-		this.typicalValues.push(i.toString());
+		this.typicalValues.push(i.toString()); // rhythms
 
 	this.suggestions = null;
 
