@@ -10,23 +10,28 @@
 	<meta charset="UTF-8">
 	
 	<!-- CSS -->
-	<link rel="stylesheet" type="text/css" href="sequencer.css">
-	<link rel="stylesheet" type="text/css" href="pace.css">
+	<link rel="stylesheet" type="text/css" href="css/sequencer.css">
+	<link rel="stylesheet" type="text/css" href="css/pace.css">
 	
 		
 	<!-- JAVASCRIPT -->
-	<script src="sequencer.js"></script>
-	<script src="base.js"></script>
-	<script src="track.js"></script>
-	<script src="synth.js"></script>
-	<script src="buffer-loader.js"></script>
-	<script src="piano.js"></script>
-	<script src="generator.js"></script>
-	<script src="ebass.js"></script>
-	<script src="pace.js"></script>
-	<script src="tabcompletion.js"></script>
+	<script src="js/sequencer.js"></script>
+	<script src="js/base.js"></script>
+	<script src="js/track.js"></script>
+	<script src="js/synth.js"></script>
+	<script src="js/loader.js"></script>
+	<script src="js/buffer-loader.js"></script>
+	<script src="js/piano.js"></script>
+	<script src="js/generator.js"></script>
+	<script src="js/ebass.js"></script>
+	<script src="js/pace.js"></script>
+	<script src="js/tabcompletion.js"></script>
+	
 	<script src="http://documentcloud.github.io/underscore/underscore-min.js"></script>
 	
+	<!-- CONFIG -->
+	<script src="config/settings.js"></script>
+	<script src="config/documentation.js"></script>
 		
 </head>
 <body>
@@ -36,7 +41,7 @@
 		</div>
 		<div class="container">
 			<div class="img-wrapper">
-				<img src="chevron.png"/>
+				<img src="img/chevron.png"/>
 			</div>
 			<input type="text" id="command" name="command">
 			<div id="message" onclick="hide(this);">Some error occurred.</div>
@@ -155,6 +160,8 @@
 			<p>Possible notes span almost all of an 88-key piano: c0 to c7</p>
 			</p>
 			
+			<div class="doc-section section-instruments"></div>
+			
 			<h4>do you like this??</h4>
 			<p>All questions and comments are much appreciated. Political, existential or otherwise.</p>
 			<p>Get in touch with me <a href="/#contact">here</a>. I respond quickly.</p>
@@ -194,6 +201,7 @@
 	function startHere() {
 		sequencer = new Sequencer(140);
 		tc = new TabCompletion();
+		//documentation.update();
 		HISTORY = [];
 		hist_index = 0;
 		
@@ -240,6 +248,7 @@
 			tc.clearTable();
 		}
 		
+		// TAB
 		else if (e.keyCode === 9) {
 			e.preventDefault();
 			setTimeout(function() {

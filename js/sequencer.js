@@ -25,6 +25,12 @@ Sequencer = function (_tempo) {
 Sequencer.prototype.init = function () {
 
 	var that = this;
+
+	// validate the settings file
+	if (!settings.validate()) {
+		console.log("ERROR: settings.js invalid...");
+		return;
+	}
 	
 	// set audio context and check API is functional
 	try {
@@ -38,117 +44,13 @@ Sequencer.prototype.init = function () {
 	// stores all buffer objects
 	BUFFERS = new Object();
 	
-	// drums
-	this.DRUMS = [
-		'kick',
-		'ekick',
-		'dry-kick',
-		'boom-kick',
-		'zill',
-		'gong',
-		'ride',
-		'ride-2',
-		'hihat',
-		'hihat-3',
-		'ohihat',
-		'ohihat-2',
-		'cross',
-		'snare',
-		'crash',
-		'crash-2',
-		'crash-3'
-	];
+	// load default instruments
+	var defaultInstruments = settings.defaultLoadedInstruments !== undefined ? settings.defaultLoadedInstruments : ['piano', 'drums'];
+	var loader = new InstrumentLoader();
+	defaultInstruments.forEach(function (instr) {
+		loader.load(instr);
+	});
 
-	this.DRUMPATHS = this.DRUMS.map(function (d) { return "/drums/" + d + ".wav"; });
-
-	
-	// custom class for loading multiple sound clips
-	// thanks to Boris Smus (http://www.html5rocks.com/en/tutorials/webaudio/intro/js/buffer-loader.js)
-	this.drumLoader = new BufferLoader(
-		globalContext,
-		this.DRUMPATHS,
-		function (bufferList) {
-			BUFFERS.drums = new Object();
-			for (var index in that.DRUMS)
-				BUFFERS.drums[that.DRUMS[index]] = bufferList[index];
-		});
-	this.drumLoader.load();
-
-
-	
-	// piano filenames
-	// Retrieved from http://pianosounds.pixelass.com/tones/grand-piano/6Cs.mp3
-	// See script folder for how to download all of the mp3s
-	// See http://www.html5piano.ilinov.eu/full/ for another working example with these sounds.
-	this.PIANO = [
-		'0A', '0As', '0B', '0C', '0Cs', '0D', '0Ds', '0E', '0F', '0Fs', '0G', '0Gs',
-		'1A', '1As', '1B', '1C', '1Cs', '1D', '1Ds', '1E', '1F', '1Fs', '1G', '1Gs',
-		'2A', '2As', '2B', '2C', '2Cs', '2D', '2Ds', '2E', '2F', '2Fs', '2G', '2Gs',
-		'3A', '3As', '3B', '3C', '3Cs', '3D', '3Ds', '3E', '3F', '3Fs', '3G', '3Gs',
-		'4A', '4As', '4B', '4C', '4Cs', '4D', '4Ds', '4E', '4F', '4Fs', '4G', '4Gs',
-		'5A', '5As', '5B', '5C', '5Cs', '5D', '5Ds', '5E', '5F', '5Fs', '5G', '5Gs',
-		'6A', '6As', '6B', '6C', '6Cs', '6D', '6Ds', '6E', '6F', '6Fs', '6G', '6Gs',
-		'7C'
-	];
-	
-	this.PIANOPATHS = this.PIANO.map(function (d) { return "/piano/" + d + ".mp3"; });
-	
-	this.pianoLoader = new BufferLoader(
-		globalContext,
-		this.PIANOPATHS,
-		function (bufferList) {
-			BUFFERS.piano = new Object();
-			for (var index in that.PIANO)
-				BUFFERS.piano[that.PIANO[index]] = bufferList[index];
-		});
-	this.pianoLoader.load();
-	
-	
-	// acoustic guitar files
-	this.AGTR = this.PIANO.slice(
-		this.PIANO.indexOf('3C'),
-		this.PIANO.indexOf('6C')
-		);
-	
-	this.AGTRPATHS = this.AGTR.map(function (d) { return "/agtr/" + d + ".mp3"; });
-	
-	this.agtrLoader = new BufferLoader(
-		globalContext,
-		this.AGTRPATHS,
-		function (bufferList) {
-			BUFFERS.agtr = new Object();
-			for (var index in that.AGTR)
-				BUFFERS.agtr[that.AGTR[index]] = bufferList[index];
-		});
-	this.agtrLoader.load();
-	
-	
-	// electric bass files
-	this.EBASS = this.PIANO.slice(
-		this.PIANO.indexOf('1A'),
-		this.PIANO.indexOf('4C')
-		);
-	
-	this.EBASSPATHS = this.EBASS.map(function (d) { return "/ebass/" + d + ".mp3"; });
-	
-	this.ebassLoader = new BufferLoader(
-		globalContext,
-		this.EBASSPATHS,
-		function (bufferList) {
-			BUFFERS.ebass = new Object();
-			for (var index in that.EBASS)
-				BUFFERS.ebass[that.EBASS[index]] = bufferList[index];
-		});
-	this.ebassLoader.load();
-	
-	// show terminal line when done loading 
-	window.onload = function () {
-		document.getElementsByClassName('container')[0].style.display = "block";
-	};
-	
-	// set global types
-	TYPES = this.DRUMS.concat(["piano", "monosynth", "agtr"]);
-	
 };
 
 
@@ -174,8 +76,10 @@ Sequencer.prototype.evaluateCommand = function (c) {
 
 
 Sequencer.prototype.addLayer = function () {
+	// add instrument(buffer) ......
 	if (this.tokens[1] === undefined)
 		this.onError("No instrument defined. Try: add snare on 1 2 4");
+	// TODO FIX THIS SHIT FUCK I AM SO TIRED RIGHTw NOqeweW3322324rex112eer;kgq;rk
 
 	else if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0)
 		this.addMelodicInput();

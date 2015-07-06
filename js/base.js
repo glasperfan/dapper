@@ -387,5 +387,20 @@ Some Instruments can "implement" the Collection interface.
 
 You can see the need for TypeScript and some object-oriented code...
 
+*/
 
+
+
+/* NEW INSTRUMENT SPECIFICATION ---
+
+What do I need to know to generate an object for it?
+- name
+- melodic?
+	-- if so, expected that the filenames are midi notes (i.e. piano(c4))
+	-- if not, then the filenames are sounds (i.e. drums(snare))
+- buffer names
+
+
+Format: JSON
+Filename: settings.js
 */

@@ -8,28 +8,25 @@
 
 function TabCompletion() {
 
-	this.elements = document.getElementsByClassName("command");
-	this.attrs = document.getElementsByClassName("attribute");
+	this.commmandEls = document.getElementsByClassName("command");
+	this.instrumentEls = document.getElementsByClassName("instruments");
+	this.bufferEls = document.getElementsByClassName("buffer");
+	this.attributeEls = document.getElementsByClassName("attribute");
+
 	this.displayTable = document.getElementById("tab-completion");
 	this.command = document.getElementById("command");
 	this.ul = document.createElement("ul");
 	this.displayTable.appendChild(this.ul);
 
-	this.commands = []
-	for (var i = 0; i < this.elements.length; i++) {
-		this.commands.push(this.elements[i].innerHTML);
-	}
-
-	this.attributes = [];
-	for (var i = 0; i < this.attrs.length; i++)
-		this.attributes[i] = this.attrs[i].innerHTML;
-
-	this.typicalValues = TYPES; // instruments
-	this.typicalValues = this.typicalValues.concat(Object.keys(SCALES)); // scales
-	for (var i = 0; i <= 1; i += 0.1)
-		this.typicalValues.push(i.toString()); // gain, probability, etc.
-	for (var i = 1; i < 5; i += 0.25)
-		this.typicalValues.push(i.toString()); // rhythms
+	// add drums(snare) every 4th
+	// add piano(c4) every 4th offset(0.5) gain(0.6)
+	// add generator(piano,cmaj,4+5,0.5,0.6) 
+	
+	// commands: add, define, load, unload, play, stop
+	// instruments: drums, piano, agtr, ebass
+	// buffers: snare, hihat, c4, a0, bs3
+	// attributes: gain, offset, shift, ms
+	// values: 0.0-1.0
 
 	this.suggestions = null;
 
