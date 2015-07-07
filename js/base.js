@@ -7,14 +7,33 @@
  */
 
 Base = function (_tokens) {
-	this.tokens = _tokens;  	// i.e ['add', 'snare', 'on', '1', '2', '4']
-	this.pitches = [];			// melodic content, if any
-	this.hits = []; 			// timing (in seconds) of sound occurrences
-	this.offset = 0; 			// default beat offset (measured in fractions of a beat)
-	this.gain = 1.0;			// default gain
-	this.sections = []; 		// if the tracks belongs to a section
-	this.isCollection = false;	// is it a collection track
-	this.error = null;			// errors
+	// components of the command
+	this.tokens = _tokens;
+	
+	// instrument alias
+	this.alias = this.tokens[1].substring(0, this.tokens[1].indexOf("("));
+
+	// settings metadata
+	this.metadata = settings.instruments[this.type];
+
+	// melodic content
+	this.buffers = extract(this.tokens[1]);
+
+	// rhythmic content
+	this.hits = [];
+
+	// other attributes
+	this.attributes = {
+		offset: 0,	// intra-measure offset (measured in fractions of a beat)
+		gain: 1.0,	// gain (volume)
+		ms: 0	// measure offset
+	};
+	
+	// sections containing this track
+	this.sections = [];
+
+	// holds error message
+	this.error = null;
 };
 
 Base.prototype.grabRhythm = function () {
@@ -41,7 +60,7 @@ Base.prototype.grabRhythm = function () {
 	if (this.tokens[2] === "every") {
 		var denom = this.tokens[3];
 		denom = parseInt(denom.substr(0, denom.length - 2));
-		if (denom & (denom - 1) !== 0 || denom > 32)
+		if ((denom & (denom - 1)) !== 0 || denom > 32)
 			this.onError("The beat divisor must be a power of two no greater than 32.");
 		var denomDuration = (60 / tempo) / (denom / 4);
 		var pause = 0;
@@ -178,7 +197,7 @@ function extract(s, format) {
 		return sequencer.onError("Syntax error. Check parentheses.");
 	// return what's between the parens "( ----- )"
 	s = s.slice(start + 1, end);
-	if (format === "string") return s;
+	if (format === "string" || format === undefined) return s;
 	if (format === "value") return parseFloat(s);
 	if (format === "array") return s.split(",");
 	if (format === "numArray") return s.split(",").map(parseFloat);

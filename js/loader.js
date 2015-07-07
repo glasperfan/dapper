@@ -23,16 +23,16 @@ InstrumentLoader.prototype.load = function (instr) {
 	var bufferPaths = bufferNames.map(function (d) {
 		return "instruments/" + bufferFolder + d + "." + instrumentSettings.extension;
 	});
-	
+
 	// custom class for loading multiple sound clips
 	// many thanks to Boris Smus (http://www.html5rocks.com/en/tutorials/webaudio/intro/js/buffer-loader.js)
 	var newLoader = new BufferLoader(
 		globalContext,
 		bufferPaths,
 		function (bufferList) {
-			BUFFERS[instrumentSettings.name] = new Object();
+			BUFFERS[instrumentSettings.alias] = new Object();
 			for (var index in bufferNames)
-				BUFFERS[instrumentSettings.name][bufferNames[index]] = bufferList[index];
+				BUFFERS[instrumentSettings.alias][bufferNames[index]] = bufferList[index];
 		});
 	newLoader.load();
 

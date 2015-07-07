@@ -101,7 +101,10 @@ function TabCompletion() {
 	
 	// populate the table with possible command prototypes
 	this.broadcastSuggestion = function (command) {
-
+		
+		if (command === undefined)
+			return;
+		
 		this.clearTable();
 
 		var suggestions = this.offerSuggestion(command);

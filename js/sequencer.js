@@ -45,7 +45,9 @@ Sequencer.prototype.init = function () {
 	BUFFERS = new Object();
 	
 	// load default instruments
-	var defaultInstruments = settings.defaultLoadedInstruments !== undefined ? settings.defaultLoadedInstruments : ['piano', 'drums'];
+	var defaultInstruments = settings.defaultLoadedInstruments;
+	if (defaultInstruments === undefined)
+		defaultInstruments = ['piano', 'drums', 'agtr', 'ebass'];
 	var loader = new InstrumentLoader();
 	defaultInstruments.forEach(function (instr) {
 		loader.load(instr);
@@ -76,27 +78,13 @@ Sequencer.prototype.evaluateCommand = function (c) {
 
 
 Sequencer.prototype.addLayer = function () {
-	// add instrument(buffer) ......
-	if (this.tokens[1] === undefined)
-		this.onError("No instrument defined. Try: add snare on 1 2 4");
-	// TODO FIX THIS SHIT FUCK I AM SO TIRED RIGHTw NOqeweW3322324rex112eer;kgq;rk
+	
+	var newTrack = new Instrument(this.tokens);
 
-	else if (this.tokens[1].indexOf("(") > 0 && this.tokens[1].indexOf(")") > 0)
-		this.addMelodicInput();
+	if (newTrack.error)
+		return this.onError(newTrack.error);
+	TRACKS.push(newTrack);
 
-	else if (TYPES.indexOf(this.tokens[1]) < 0)
-		this.onError("No instrument exists with the name: '" + this.tokens[1] + "'.");
-
-	else if (this.tokens[2] === undefined)
-		this.onError("No rhythmic pattern specified.");
-
-	else {
-		// rhythmic input
-		var newTrack = new Drum(this.tokens);
-		if (newTrack.error)
-			return this.onError(newTrack.error);
-		TRACKS.push(newTrack);
-	}
 	this.update();
 };
 
