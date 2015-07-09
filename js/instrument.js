@@ -24,17 +24,15 @@ Instrument.prototype.init = function () {
 
 	// len, offset, shift, etc.
 	this.grabAttributes();
-
+	
+	// track table information
+	this.setDisplayInfo();
 };
 
 Instrument.prototype.playBar = function () {
 	var time = globalContext.currentTime;
-	
+
 	for (var i in this.hits)
 		for (var j in this.buffers)
-			this.play(time + this.hits[i], BUFFERS[this.type][this.buffers[j]]);
-};
-
-Instrument.prototype.validate = function () {
-	console.log("TODO: validate instrument input");
+			this.play(time + this.hits[i], BUFFERS[this.alias][this.buffers[j]]);
 };

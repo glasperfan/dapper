@@ -7,6 +7,9 @@
  */
 
 Base = function (_tokens) {
+	// type of track
+	this.type = "instrument";
+	
 	// components of the command
 	this.tokens = _tokens;
 	
@@ -14,23 +17,23 @@ Base = function (_tokens) {
 	this.alias = this.tokens[1].substring(0, this.tokens[1].indexOf("("));
 
 	// settings metadata
-	this.metadata = settings.instruments[this.type];
+	this.metadata = settings.instruments[this.alias];
 
 	// melodic content
-	this.buffers = extract(this.tokens[1]);
+	this.buffers = extract(this.tokens[1]).split(",");
 
 	// rhythmic content
 	this.hits = [];
-
-	// other attributes
-	this.attributes = {
-		offset: 0,	// intra-measure offset (measured in fractions of a beat)
-		gain: 1.0,	// gain (volume)
-		ms: 0	// measure offset
-	};
 	
 	// sections containing this track
 	this.sections = [];
+
+	// other attributes
+	this.attributes = {
+		offset: 0,		// intra-measure offset (measured in fractions of a beat)
+		gain: 1.0,		// gain (volume)
+		sections: [] 	// sections that contain it
+	};
 
 	// holds error message
 	this.error = null;
@@ -43,75 +46,87 @@ Base.prototype.grabRhythm = function () {
 	
 	// "on 1 2 4"
 	if (this.tokens[2] === "on") {
-		var beats = this.tokens.slice(3);
-		// remove sect() and offset(), etc.
-		beats = beats.map(parseFloat).filter(function (d) { return d === d; });
-		if (beats.length === 0)
-			return this.onError("You forgot to specify beats. i.e. '1 2 4'");
-		for (var i = 0; i < beats.length; i++) {
-			var beat = beats[i] - 1;
-			if (beat < 0 || beat >= 4)
-				this.onError("Beats must be between 1 and 5. 1, as in \"beat 1\", represents the downbeat.");
-			this.hits.push(beat * beatDuration);
-		}
+		var i = 3;
+		var hit = parseFloat(this.tokens[i]) - 1;
+		do {
+			this.hits.push(hit * beatDuration);
+			i++;
+			hit = parseFloat(this.tokens[i] - 1);
+		} while (!isNaN(hit));
+		this.rhythmTokens = this.tokens.slice(3, i + 1);
 	}
 	
 	// "every 8th"
-	if (this.tokens[2] === "every") {
-		var denom = this.tokens[3];
-		denom = parseInt(denom.substr(0, denom.length - 2));
-		if ((denom & (denom - 1)) !== 0 || denom > 32)
-			this.onError("The beat divisor must be a power of two no greater than 32.");
+	else if (this.tokens[2] === "every") {
+		var denom = parseInt(this.tokens[3].slice(0, -2)); // slice off the "th"
 		var denomDuration = (60 / tempo) / (denom / 4);
-		var pause = 0;
+		var offset = 0;
 		for (var i = 0; i < denom; i++) {
-			this.hits.push(pause); // in seconds
-			pause += denomDuration;
+			this.hits.push(offset); // in seconds
+			offset += denomDuration;
 		}
+		this.rhythmTokens = this.tokens.slice(2, 4);
 	}
 };
 
 Base.prototype.grabAttributes = function () {
 	var that = this;
 	var beatDuration = 60 / tempo;
+	var originalCommand = this.tokens.join(" ");
+	var attrSettings = settings.attributes;
+	
+	// offset
+	var offsetMatch = originalCommand.match(attrSettings.offset.regex);
+	if (offsetMatch !== null) {
+		var offsetValue = extract(offsetMatch[0], "value") * beatDuration;
+		if (offsetValue !== undefined && offsetValue >= attrSettings.offset.min && offsetValue <= attrSettings.offset.max)
+			this.attributes.offset = offsetValue;
+		else
+			return this.onError("Invalid offset value.");
+	}
 
-	for (var i = 4; i < this.tokens.length; i++) {
-		// offset
-		if (this.tokens[i].indexOf("offset") === 0) {
-			this.offset = extract(this.tokens[i], "value");
-			if (this.offset < 0)
-				return this.onError("Invalid offset - must be a postive value representing the length of the beat offset.");
-			this.offset *= beatDuration;
-		}
-		
-		// gain
-		if (this.tokens[i].indexOf("gain") === 0) {
-			this.gain = extract(this.tokens[i], "value");
-			if (this.gain < 0)
-				return this.onError("Invalid gain - must be postive value (1.0 = default).");
-		}
-		
-		// section
-		if (this.tokens[i].indexOf("sect") === 0) {
-			this.sections = [extract(this.tokens[i], "string").toUpperCase()];
-		}
+	// add offset
+	this.hits = this.hits.map(function (d) { return d + that.attributes.offset; });
+
+	// gain
+	var gainMatch = originalCommand.match(attrSettings.gain.regex);
+	if (gainMatch !== null) {
+		var gainValue = extract(offsetMatch[0], "value");
+		if (gainValue !== undefined && gainValue >= attrSettings.gain.min && gainValue <= attrSettings.gain.max)
+			this.attributes.gain = gainValue;
+		else
+			return this.onError("Invalid gain value.");
 	}
 	
-	// add offset
-	this.hits = this.hits.map(function (d) { return d + that.offset; });
+	// section
+	var sectionMatch = originalCommand.match(attrSettings.section.regex);
+	if (sectionMatch !== null) {
+		var sectionValue = extract(sectionMatch[0]);
+		if (sectionValue !== undefined)
+			this.attributes.sections.push(sectionValue.toUpperCase());
+	}
 	
-	// check for a defining section
-	// otherwise, put it in MASTER
-	if (buildingSection && this.sections.length === 0)
-		this.sections = [buildingSection];
-	else if (this.sections.length === 0)
-		this.sections = ["MASTER"];
-		
-	// remove "sect(_)" from tokens
-	this.tokens.forEach(function (d, i) {
-		if (d.indexOf("sect") !== -1)
-			d = "";
-	});
+	if (buildingSection && this.attributes.sections.length === 0)
+		this.attributes.sections.push(buildingSection);
+	else
+		this.attributes.sections.push("MASTER");
+};
+
+Base.prototype.setDisplayInfo = function () {
+	
+	// any settings configuration takes precedent
+	if (this.metadata.displayInfo === undefined)
+		this.metadata.displayInfo = new Object();
+	var mdi = this.metadata.displayInfo;
+	
+	// index: a perpetually increasing track counter
+	this.displayInfo = {
+		index : (mdi.index !== undefined) ? mdi.index : globalTrackIndex++,
+		instrument : (mdi.fullName !== undefined) ? mdi.fullName : this.metadata.fullName,
+		sections : (mdi.sections !== undefined) ? mdi.sections : this.attributes.sections.join(", ").substring(0, settings.displayInfo.maxCharLimit),
+		melody : (mdi.melody !== undefined) ? mdi.melody : this.buffers.join(" ").substring(0, settings.displayInfo.maxCharLimit),
+		rhythm : (mdi.rhythm !== undefined) ? mdi.rhythm : this.rhythmTokens.join(" ")
+	};
 };
  
 // Convert: add pianocol(as5-1,f5-1.5,d5-2,a5-2.5,f5-2.5)
@@ -143,9 +158,10 @@ Base.prototype.play = function (time, buffer) {
 	var source = globalContext.createBufferSource();
 	var gain = globalContext.createGain();
 	source.buffer = buffer;
-	gain.gain.value = this.gain;
+	gain.gain.value = this.attributes.gain;
 	source.connect(gain);
 	gain.connect(globalContext.destination);
+//	console.log(time);
 	source.start(time);
 };
 
@@ -153,16 +169,6 @@ Base.prototype.play = function (time, buffer) {
 Base.prototype.stop = function ()	{ /* should be overridden */ };
 Base.prototype.pause = function () { /* should be overridden */ };
 
-Base.prototype.displayInfo = function () {
-		/* all tracks should override this */
-		/* Specify the following (as strings):
-		 * instrument
-		 * section
-		 * melodic content
-		 * rhythmic content
-		 */
-};
- 
 // default error logging method
 Base.prototype.onError = function (reason) {
 	this.error = reason;
@@ -241,18 +247,11 @@ function updateDisplay() {
 		var mel_cell = row.insertCell(3);
 		var rhm_cell = row.insertCell(4);
 
-		ind_cell.innerHTML = i;
-
-		inst_cell.innerHTML = track.type;
-
-		sect_cell.innerHTML = track.sections.join(", ");
-
-		var melody_text = (track.pitches === undefined) ? '' : TRACKS[i].pitches.join(", ");
-		mel_cell.innerHTML = (melody_text.length > 20) ? melody_text.substring(0, 15) + "..." : melody_text;
-
-		rhm_cell.innerHTML = track.tokens.slice(2).join(' ');
-		if (track instanceof Generator)
-			rhm_cell.innerHTML = track.beats.join(", ");
+		ind_cell.innerHTML = track.displayInfo.index;
+		inst_cell.innerHTML = track.displayInfo.instrument;
+		sect_cell.innerHTML = track.displayInfo.sections;
+		mel_cell.innerHTML = track.displayInfo.melody;
+		rhm_cell.innerHTML = track.displayInfo.rhythm;
 	}
 }
 

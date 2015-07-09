@@ -14,6 +14,7 @@ Sequencer = function (_tempo) {
 	buildingSection = null;	// currently defining this section
 	showSection = null;		// section displayed in the track table
 	measureStart = 0.0; 	// store most recent measure start time
+	globalTrackIndex = 0;	// increases with each new track created 
 	
 	this.table = document.getElementById("tracks-table");
 	this.instructions = document.getElementById("instructions");
@@ -23,8 +24,6 @@ Sequencer = function (_tempo) {
 };
 
 Sequencer.prototype.init = function () {
-
-	var that = this;
 
 	// validate the settings file
 	if (!settings.validate()) {

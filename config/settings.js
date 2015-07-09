@@ -38,7 +38,7 @@ var settings = {
 			fullName: "Drum Kit",
 			source: "http://freewavesamples.com/",
 			folder: "drums/",
-			extension: "wav",
+			extension: "mp3",
 			melodic: false,
 			buffers: ['kick', 'ekick', 'dry-kick', 'boom-kick',
 				'zill', 'gong', 'ride', 'ride-2', 'hihat',
@@ -46,6 +46,26 @@ var settings = {
 				'snare', 'crash', 'crash-2', 'crash-3'
 			]
 		}
+	},
+
+	attributes: {
+		offset: {
+			min: 0.0,
+			max: 1.0, // TODO: fix this once more time signatures are added in
+			regex: /offset\([0-9.]+\)/
+		},
+		gain: {
+			min: 0.0,
+			max: 1.0,
+			regex: /gain\([0-9.]+\)/
+		},
+		section: {
+			regex: /sect\([a-zA-Z0-9_.]+\)/
+		}
+	},
+	
+	displayInfo: {
+		maxCharLimit: 25 	// character limit of each cell
 	},
 
 	// specify the instruments downloaded by default
