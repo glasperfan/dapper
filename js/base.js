@@ -7,9 +7,6 @@
  */
 
 Base = function (_tokens) {
-	// type of track
-	this.type = "instrument";
-	
 	// components of the command
 	this.tokens = _tokens;
 	
@@ -24,9 +21,6 @@ Base = function (_tokens) {
 
 	// rhythmic content
 	this.hits = [];
-	
-	// sections containing this track
-	this.sections = [];
 
 	// other attributes
 	this.attributes = {
@@ -69,29 +63,29 @@ Base.prototype.grabRhythm = function () {
 	}
 };
 
-Base.prototype.grabAttributes = function () {
+Base.prototype.grabAttributes = function (command) {
 	var that = this;
 	var beatDuration = 60 / tempo;
-	var originalCommand = this.tokens.join(" ");
 	var attrSettings = settings.attributes;
 	
 	// offset
-	var offsetMatch = originalCommand.match(attrSettings.offset.regex);
+	var offsetMatch = command.match(attrSettings.offset.regex);
 	if (offsetMatch !== null) {
 		var offsetValue = extract(offsetMatch[0], "value") * beatDuration;
-		if (offsetValue !== undefined && offsetValue >= attrSettings.offset.min && offsetValue <= attrSettings.offset.max)
+		if (offsetValue !== undefined && offsetValue >= attrSettings.offset.min && offsetValue <= attrSettings.offset.max) {
+			this.hits = this.hits.map(function (d) {
+				return d + offsetValue - that.attributes.offset;
+			});
 			this.attributes.offset = offsetValue;
+		}
 		else
 			return this.onError("Invalid offset value.");
 	}
 
-	// add offset
-	this.hits = this.hits.map(function (d) { return d + that.attributes.offset; });
-
 	// gain
-	var gainMatch = originalCommand.match(attrSettings.gain.regex);
+	var gainMatch = command.match(attrSettings.gain.regex);
 	if (gainMatch !== null) {
-		var gainValue = extract(offsetMatch[0], "value");
+		var gainValue = extract(gainMatch[0], "value");
 		if (gainValue !== undefined && gainValue >= attrSettings.gain.min && gainValue <= attrSettings.gain.max)
 			this.attributes.gain = gainValue;
 		else
@@ -99,7 +93,7 @@ Base.prototype.grabAttributes = function () {
 	}
 	
 	// section
-	var sectionMatch = originalCommand.match(attrSettings.section.regex);
+	var sectionMatch = command.match(attrSettings.section.regex);
 	if (sectionMatch !== null) {
 		var sectionValue = extract(sectionMatch[0]);
 		if (sectionValue !== undefined)
@@ -108,7 +102,7 @@ Base.prototype.grabAttributes = function () {
 	
 	if (buildingSection && this.attributes.sections.length === 0)
 		this.attributes.sections.push(buildingSection);
-	else
+	else if (this.attributes.sections.length === 0)
 		this.attributes.sections.push("MASTER");
 };
 
@@ -121,8 +115,7 @@ Base.prototype.setDisplayInfo = function () {
 	
 	// index: a perpetually increasing track counter
 	this.displayInfo = {
-		index : (mdi.index !== undefined) ? mdi.index : globalTrackIndex++,
-		instrument : (mdi.fullName !== undefined) ? mdi.fullName : this.metadata.fullName,
+		instrument : (mdi.fullName !== undefined) ? mdi.fullName : this.metadata.alias,
 		sections : (mdi.sections !== undefined) ? mdi.sections : this.attributes.sections.join(", ").substring(0, settings.displayInfo.maxCharLimit),
 		melody : (mdi.melody !== undefined) ? mdi.melody : this.buffers.join(" ").substring(0, settings.displayInfo.maxCharLimit),
 		rhythm : (mdi.rhythm !== undefined) ? mdi.rhythm : this.rhythmTokens.join(" ")
@@ -226,12 +219,16 @@ function show(el, val) { el.style.display = (val === undefined) ? "block" : val;
 // update track table display (based on DISPLAYTRACKS)
 function updateDisplay() {
 	var table = document.getElementById("tracks-table");
-	
-	// filter tracks to be shown
+
+	DISPLAYTRACKS = TRACKS;
 	if (showSection)
-		DISPLAYTRACKS = TRACKS.filter(function (d) { return _.contains(d.sections, showSection); });
-	else
-		DISPLAYTRACKS = TRACKS;
+		DISPLAYTRACKS = TRACKS.filter(function (d) { return _.contains(d.attributes.sections, showSection); });
+	
+	// sort by section
+	DISPLAYTRACKS.sort(function (a, b) {
+		return a.attributes.sections[0][0].charCodeAt() - b.attributes.sections[0][0].charCodeAt();
+	});
+	
 	
 	// delete rows and refresh the table
 	while (table.rows.length > 1) {
@@ -247,7 +244,7 @@ function updateDisplay() {
 		var mel_cell = row.insertCell(3);
 		var rhm_cell = row.insertCell(4);
 
-		ind_cell.innerHTML = track.displayInfo.index;
+		ind_cell.innerHTML = i;
 		inst_cell.innerHTML = track.displayInfo.instrument;
 		sect_cell.innerHTML = track.displayInfo.sections;
 		mel_cell.innerHTML = track.displayInfo.melody;
@@ -266,18 +263,18 @@ function sectionExists(section) {
 		return true;
 
 	var containsThisSection = false;
-	section = section.toUpperCase();
 	TRACKS.forEach(function (d) {
-		if (_.contains(d.sections, section))
+		if (_.contains(d.attributes.sections, section))
 			containsThisSection = true;
 	});
 
 	return containsThisSection;
 }
 
-function typeExists(t) {
-	return _.contains(TYPES, t);
+function instrumentExists(instr) {
+	return _.contains(Object.keys(settings.instruments), instr);
 }
+
 
 // Takes a statement like "a+b-c" 
 // Uses underscore.js to simplify things.
@@ -311,7 +308,7 @@ function evaluateSectionEquation(equation) {
 		var section = component.substring(1);
 		var relatedTracks = TRACKS; // section = "ALL"
 		if (section !== "ALL")
-			relatedTracks = TRACKS.filter(function (d) { return _.contains(d.sections, section); });
+			relatedTracks = TRACKS.filter(function (d) { return _.contains(d.attributes.sections, section); });
 
 		var mode = component[0];
 		if (mode === '+')

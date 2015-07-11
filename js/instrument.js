@@ -6,6 +6,7 @@
  */
 
 Instrument = function (_tokens) {
+	this.type = "instrument";
 
 	// call the parent constructor
 	Base.call(this, _tokens);
@@ -23,7 +24,7 @@ Instrument.prototype.init = function () {
 	this.grabRhythm();
 
 	// len, offset, shift, etc.
-	this.grabAttributes();
+	this.grabAttributes(this.tokens.join(" "));
 	
 	// track table information
 	this.setDisplayInfo();

@@ -5,7 +5,26 @@
  *
  */
 var documentation = {
+
+	commands: [
+		'add',
+		'rm',
+		'tempo',
+		'play',
+		'stop',
+		'pause',
+		'show',
+		'hide',
+		'define',
+		'set'
+	],
+
+	instruments: Object.keys(settings.instruments),
+
+	buffers_melodic: {}, // TODO
 	
+	attributes: {}, // TODO
+
 	update: function () {
 		var instrDocEl = document.getElementsByClassName("doc-section section-instruments")[0];
 

@@ -6,9 +6,8 @@
  */
  
 Generator = function (_tokens) {
-	this.type = null;
-	this.instrument = null;
-	this.buffers = null;
+	this.type = "generator";
+	this.buffers = [];
 	this.scale = null;
 	this.range = null;
 	this.noteLength = null;
@@ -18,6 +17,9 @@ Generator = function (_tokens) {
 	Base.call(this, _tokens);
 
 	this.init();
+	
+	// then update the display information
+	this.setDisplayInfo();
 };
  
 // inheritance details
@@ -25,41 +27,44 @@ Generator.prototype = Object.create(Base.prototype);
 Generator.prototype.constructor = Generator;
 
 Generator.prototype.init = function () {
+	var that = this;
 	 
 	// command: add generator(piano,Amaj,5+6,0.5,0.6)
+	this.buffers = [];
 	
 	// either 3 or 5 parameters
 	this.params = extract(this.tokens[1], "string").split(",");
 	if (this.params.length === 3)
 		this.params.splice(1, 0, null, null);
 	
-	// type
-	this.type = this.params[0];
+	// instrument alias
+	this.alias = this.params[0];
+	this.metadata = settings.instruments[this.alias];
 
 	// instrument and buffers
-	if (_.contains(sequencer.DRUMS, this.type))
-		this.instrument = "drums";
-	else
-		this.instrument = this.type;
-	this.buffers = BUFFERS[this.instrument];
-
-	// scales and ranges
-	if (this.instrument !== "drums") {
-		this.scale = SCALES[this.params[1]];
+	this.settings = settings.instruments[this.alias];
+	if (this.settings.melodic) {
+		this.scale = SCALES[this.params[1]]; // ["a", "b", "c"]
 		this.range = this.params[2].split("+").map(function (d) { return parseInt(d, 10); });
+		this.scale.forEach(function (d) {
+			for (var rangeIndex in that.range) {
+				var note = d + that.range[rangeIndex]; // "a4"
+				if (_.contains(settings.MIDInotes, note))
+					that.buffers.push(note);
+			}
+		});
 	}
+	else
+		this.buffers = this.settings.buffers;
 	
 	// note length
 	this.noteLength = parseFloat(this.params[3]);
 	
 	// occurrence probability
 	this.occurrencePr = parseFloat(this.params[4]);
-	 
-	// validate
-	if (!this.errorChecking())
-		return;
 
-	this.grabAttributes();
+	// offset, gain, etc.
+	this.grabAttributes(this.tokens.join(" "));
 
 	// eagerly evaluate the first measure
 	this.evaluate();
@@ -76,16 +81,11 @@ Generator.prototype.evaluate = function () {
 	var noteDuration = beatDuration * this.noteLength;
 	var numIntervals = BEATS_PER_MEASURE / this.noteLength;
 	for (var i = 0; i < numIntervals; i++) {
-		var randPr = this.getRandom();
-		if (this.occurrencePr >= randPr) { // 1.0 should always pass
+		if (this.occurrencePr >= getRandom()) { // 1.0 should always pass
 			
-			// determine the sound
-			var sound = this.type;
-			if (this.instrument !== "drums") {
-				var randPitch = this.scale[this.getRandomInt(0, this.scale.length)];
-				var randOctave = this.range[this.getRandomInt(0, this.range.length)];
-				sound = reverseNote(randPitch + randOctave);
-			}
+			// choose a random note/sound
+			var sound = this.buffers[getRandomInt(0, this.buffers.length)];
+			
 			this.pitches.push(sound);
 			this.beats.push(i * this.noteLength);
 			
@@ -98,15 +98,20 @@ Generator.prototype.evaluate = function () {
 Generator.prototype.playBar = function () {
 	var time = globalContext.currentTime;
 	for (var i in this.pitches)
-		this.play(time + this.hits[i], this.buffers[this.pitches[i]]);
+		this.play(time + this.hits[i], BUFFERS[this.alias][this.pitches[i]]);
 	
 	// update the display with the current content
+	this.setDisplayInfo();
 	updateDisplay();
 	
 	// then re-evaluate
 	this.evaluate();
 };
 
+Generator.prototype.setDisplayInfo = function () {
+	this.rhythmTokens = this.beats;
+	Base.prototype.setDisplayInfo.call(this);
+};
 
 
 Generator.prototype.errorChecking = function () {
@@ -138,10 +143,10 @@ Generator.prototype.errorChecking = function () {
 
 
 
-Generator.prototype.getRandom = function () {
+function getRandom() {
 	return Math.random();
 };
 
-Generator.prototype.getRandomInt = function (min, max) {
+function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
 };

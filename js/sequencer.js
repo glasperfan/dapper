@@ -26,7 +26,7 @@ Sequencer = function (_tempo) {
 Sequencer.prototype.init = function () {
 
 	// validate the settings file
-	if (!settings.validate()) {
+	if (!validator.settings.validate()) {
 		console.log("ERROR: settings.js invalid...");
 		return;
 	}
@@ -46,7 +46,7 @@ Sequencer.prototype.init = function () {
 	// load default instruments
 	var defaultInstruments = settings.defaultLoadedInstruments;
 	if (defaultInstruments === undefined)
-		defaultInstruments = ['piano', 'drums', 'agtr', 'ebass'];
+		defaultInstruments = Object.keys(settings.instruments);
 	var loader = new InstrumentLoader();
 	defaultInstruments.forEach(function (instr) {
 		loader.load(instr);
@@ -70,38 +70,27 @@ Sequencer.prototype.evaluateCommand = function (c) {
 	if (this.tokens[0] === "show") return this.show();
 	if (this.tokens[0] === "hide") return this.hide();
 	if (this.tokens[0] === "define") return this.define();
+	if (this.tokens[0] === "set") return this.set();
 
-	return this.onError(this.tokens[0] + " is not a command.");
+	return validator.onError(this.tokens[0] + " is not a command.");
 };
 
 
 
 Sequencer.prototype.addLayer = function () {
 	
-	var newTrack = new Instrument(this.tokens);
+	var newTrack;
+	if (this.tokens[1].indexOf("generator") === 0)
+		newTrack = new Generator(this.tokens);
+	else
+		newTrack = new Instrument(this.tokens);
 
 	if (newTrack.error)
-		return this.onError(newTrack.error);
+		return validator.onError(newTrack.error);
 	TRACKS.push(newTrack);
 
 	this.update();
 };
-
-
-
-Sequencer.prototype.addMelodicInput = function () {
-	var newTrack = null;
-	if (this.tokens[1].indexOf("monosynth") === 0) newTrack = new Synth(this.tokens);
-	if (this.tokens[1].indexOf("piano") === 0) newTrack = new Piano(this.tokens);
-	if (this.tokens[1].indexOf("generator") === 0) newTrack = new Generator(this.tokens);
-	if (this.tokens[1].indexOf("ebass") === 0) newTrack = new Ebass(this.tokens);
-	if (!newTrack)
-		return this.onError("Unable to identify an instrument.");
-	if (newTrack.error)
-		return this.onError(newTrack.error);
-	TRACKS.push(newTrack);
-};
-
 
 
 
@@ -112,19 +101,19 @@ Sequencer.prototype.removeLayer = function () {
 	if (this.tokens[1] === undefined) {
 		for (var track in TRACKS) TRACKS[track].stop();
 		TRACKS = [];
-	} 
+	}
 	
 	// remove most recent (cmd: rm last)
 	else if (this.tokens[1] === "last") { // remove most recently added track
 		TRACKS[TRACKS.length - 1].stop();
 		TRACKS.pop();
-	} 
+	}
 	
 	// remove by index (cmd: rm 5)
 	else if (!isNaN(this.tokens[1])) {
 		var index = parseInt(this.tokens[1]);
 		if (index < 0 || index >= TRACKS.length)
-			return this.onError("rm : Invalid index argument.");
+			return validator.onError("rm : Invalid index argument.");
 		TRACKS.splice(index, 1);
 	}
 	
@@ -133,7 +122,7 @@ Sequencer.prototype.removeLayer = function () {
 		var section = this.tokens[1].toUpperCase();
 		TRACKS = TRACKS.filter(function (d) {
 			var keepIt = true;
-			if (_.contains(d.sections, section)) {
+			if (_.contains(d.attributes.sections, section)) {
 				d.stop();
 				keepIt = false;
 			}
@@ -141,11 +130,11 @@ Sequencer.prototype.removeLayer = function () {
 		});
 	}
 	
-	// remove by type (cmd: rm snare)
-	else if (typeExists(this.tokens[1])) {
+	// remove by instrument (cmd: rm drums/Drum Kit)
+	else if (instrumentExists(this.tokens[1])) {
 		TRACKS = TRACKS.filter(function (d) {
 			var keepIt = true;
-			if (d.type === that.tokens[1]) {
+			if (d.alias === that.tokens[1] || d.fullName === that.tokens[1]) {
 				d.stop();
 				keepIt = false;
 			}
@@ -155,7 +144,7 @@ Sequencer.prototype.removeLayer = function () {
 	
 	// else fail
 	else {
-		return this.onError("rm: Invalid argument.");
+		return validator.onError("rm: Invalid argument.");
 	}
 
 	this.update();
@@ -163,10 +152,8 @@ Sequencer.prototype.removeLayer = function () {
 
 
 
-// this is where the sequencing happens
 Sequencer.prototype.eventLoop = function () {
 	measureStart = globalContext.currentTime;
-	// go through stack of tracks and press play on each one
 	for (var index in PLAYTRACKS)
 		PLAYTRACKS[index].playBar();
 };
@@ -179,11 +166,11 @@ Sequencer.prototype.setTempo = function () {
 	var newT = this.tokens[1];
 
 	if (newT === undefined)
-		return this.onError("You must specify a tempo between 60 and 240.");
+		return validator.onError("You must specify a tempo between 60 and 240.");
 
 	newT = parseInt(newT);
 	if (newT < 16)
-		return this.onError("The lowest recognized tempo is 16 bpm.");
+		return validator.onError("The lowest recognized tempo is 16 bpm.");
 
 	var oldTempo = tempo;
 	tempo = newT;
@@ -215,7 +202,7 @@ Sequencer.prototype.play = function (isUpdate) {
 		// "play <sections>"
 		var tracks = evaluateSectionEquation(this.lastPlayCommand);
 		if (!tracks)
-			return this.onError("At least one specified section does not exist.");
+			return validator.onError("At least one specified section does not exist.");
 		PLAYTRACKS = tracks;
 	}
 	
@@ -272,7 +259,7 @@ Sequencer.prototype.show = function () {
 		if (sectionExists(section))
 			showSection = section;
 		else
-			return this.onError("No section exists called " + section);
+			return validator.onError("No section exists called " + section);
 		updateDisplay();
 	}
 };
@@ -293,7 +280,7 @@ Sequencer.prototype.hide = function () {
 
 Sequencer.prototype.define = function () {
 	if (this.tokens[1] === undefined)
-		return this.onError("Define what? Specify a section.");
+		return validator.onError("Define what? Specify a section.");
 	else {
 		var newSection = this.tokens[1].toUpperCase();
 		// define end
@@ -318,7 +305,7 @@ Sequencer.prototype.define = function () {
 		// ensure the section does not have reserved symbols
 		else if (newSection.indexOf("+") !== -1 ||
 			newSection.indexOf("-") !== -1) {
-			return this.onError("Invalid section name.");
+			return validator.onError("Invalid section name.");
 		} 
 		
 		//
@@ -330,6 +317,11 @@ Sequencer.prototype.define = function () {
 		this.onInfo("Defining section " + buildingSection);
 	else
 		this.onInfo("Back to master...");
+};
+
+Sequencer.prototype.set = function () {
+	var index = parseInt(this.tokens[1]);
+	TRACKS[index].grabAttributes(this.tokens.join(" "));
 };
 
 
@@ -346,7 +338,7 @@ Sequencer.prototype.update = function () {
 
 // TODO: make this different than onError?
 Sequencer.prototype.onInfo = function (reason) {
-	this.onError(reason);
+	validator.onError(reason);
 };
 
 

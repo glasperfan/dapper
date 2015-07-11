@@ -13,7 +13,7 @@ InstrumentLoader.prototype.load = function (instr) {
 	var instrumentSettings = settings.instruments[instr];
 
 	// validate the config/settings.js specification
-	if (!settings.validate())
+	if (!validator.settings.validate())
 		return this.onError(settings.error);
 		
 	var bufferFolder = (instrumentSettings.folder === undefined) ? instrumentSettings.name : instrumentSettings.folder;

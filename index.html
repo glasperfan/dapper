@@ -30,6 +30,7 @@
 	<!-- CONFIG -->
 	<script src="config/settings.js"></script>
 	<script src="config/documentation.js"></script>
+	<script src="config/validator.js"></script>
 		
 </head>
 <body>
@@ -171,30 +172,8 @@
 </body>
 
 <script>
-	
-	// THE TODOs
-	// 1. Add validation of midi notes
-	// 2. FIX TEMPO BUG
-	// 3. Make display sort by sections.
-	// 4. Make the existing sections an array, updated upon the addition or removal of a track
-	// 5. add "set" functionality
-	// 6. Add rhythm display for generators
-	// 7. Add documentation for collections and generators
-	// 9. Fix monosynth section bug
-	// 10. Move loading of buffers to a separate process (one that can load and unload instruments)
-	// 11. Shortcuts for common commmands (d = define, s = stop, p = play, l = load, u = unload)
-	// 12. Swingify option
-	// 13. Move track display logic into the classes
-	// 14. Add custom alias functionality
-	// 15. Load files into local storage, and then check it in the future on reload
-	// 16. Show "c,d" --> see the progression of tracks, maybe with like a line in between to show "now/then"
-	// 17. queue/pop functionality to set playing tracks in advance
-	// 18. Freeze settings? Object.freeze.
-	
-	// IN THE FUTURE:
-	// Add cloud storage to allow for others to add to it
-	// 8. Big goal: allow for collaboration and saving of tracks
-	
+
+
 	var command = document.getElementById("command");
 	
 	function startHere() {
