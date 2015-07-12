@@ -7,7 +7,7 @@
 
 Instrument = function (_tokens) {
 	this.type = "instrument";
-
+	
 	// call the parent constructor
 	Base.call(this, _tokens);
 

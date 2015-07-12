@@ -12,7 +12,7 @@ var validator = {
 	
 	// error message
 	error: null,
-	
+
 	onError: function (_error) {
 		this.error = _error;
 		console.log(this.error);
@@ -80,6 +80,20 @@ var validator = {
 				if (settingsObj.extension === undefined)
 					return validator.onError(errorMessage + "'extension' attribute should define the file extension for the audio buffers.");
 			}
-		},
+		}
+	},
+
+	midi: {
+		validateNotes: function(notes) {
+			if (typeof notes === "string")
+				notes = notes.trim().split(",");
+			if (!(notes instanceof Array))
+				return validator.onError("MIDI: note input must be a command-separated list.");
+			notes.forEach(function (d) {
+				if (!_.contains(settings.MIDInotes, d))
+					return validator.onError("MIDI: invalid note --> " + d);
+			});
+		}
 	}
+	
 };
