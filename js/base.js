@@ -9,15 +9,6 @@
 Base = function (_tokens) {
 	// components of the command
 	this.tokens = _tokens;
-	
-	// instrument alias
-	this.alias = this.tokens[1].substring(0, this.tokens[1].indexOf("("));
-
-	// settings metadata
-	this.metadata = settings.instruments[this.alias];
-
-	// melodic content
-	this.buffers = extract(this.tokens[1]).split(",");
 
 	// rhythmic content
 	this.hits = [];
@@ -191,15 +182,22 @@ function reverseNote(note) {
 // extract what's inside the parentheses
 function extract(s, format) {
 	// check syntax
-	var start = s.indexOf("("), end = s.indexOf(")");
-	if (start >= end || end !== s.length - 1)
-		return sequencer.onError("Syntax error. Check parentheses.");
+	var start = s.indexOf("("), end = s.lastIndexOf(")");
+	if (start === -1 || start >= end || end !== s.length - 1)
+		return null;
 	// return what's between the parens "( ----- )"
 	s = s.slice(start + 1, end);
 	if (format === "string" || format === undefined) return s;
 	if (format === "value") return parseFloat(s);
 	if (format === "array") return s.split(",");
 	if (format === "numArray") return s.split(",").map(parseFloat);
+}
+
+// extract the namespace: "foo"" in foo(bar)
+function extractNamespace(s) {
+	if (s.indexOf("(") < 0)
+		return s;
+	return s.substring(0, s.indexOf("("));
 }
 
 // converts note names to frequencies

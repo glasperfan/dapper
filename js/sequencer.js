@@ -79,15 +79,16 @@ Sequencer.prototype.evaluateCommand = function (c) {
 
 Sequencer.prototype.addLayer = function () {
 	
-	var newTrack;
+	var newTrack = null;
 	if (this.tokens[1].indexOf("generator") === 0)
 		newTrack = new Generator(this.tokens);
-	else
-		newTrack = new Instrument(this.tokens);
+	else {
+		if (validator.instrument.validate(this.tokens))
+			newTrack = new Instrument(this.tokens);
+	}
 
-	if (newTrack.error)
-		return validator.onError(newTrack.error);
-	TRACKS.push(newTrack);
+	if (newTrack !== null)
+		TRACKS.push(newTrack);
 
 	this.update();
 };

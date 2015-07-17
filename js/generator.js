@@ -12,10 +12,10 @@ Generator = function (_tokens) {
 	this.range = null;
 	this.noteLength = null;
 	this.occurrencePr = null;
-	 
+	
 	// call the parent constructor
 	Base.call(this, _tokens);
-
+	
 	this.init();
 	
 	// then update the display information
@@ -29,21 +29,22 @@ Generator.prototype.constructor = Generator;
 Generator.prototype.init = function () {
 	var that = this;
 	 
-	// command: add generator(piano,Amaj,5+6,0.5,0.6)
+	// command: add generator(piano,amaj,4+5,0.5,0.6)
+	// command: add generator(drums(ride-2),0.5,0.6)
 	this.buffers = [];
 	
-	// either 3 or 5 parameters
-	this.params = extract(this.tokens[1], "string").split(",");
+	// either 3 or 5 parameters (for non-melodic and melodic instruments, respectively)
+	this.params = extract(this.tokens[1]).splitOneLevel(",");
 	if (this.params.length === 3)
 		this.params.splice(1, 0, null, null);
 	
-	// instrument alias
-	this.alias = this.params[0];
+	// instrument information
+	// alias([sounds]) --> i.e. "drums(snare,ride-2)" or "piano"
+	this.alias = extractNamespace(this.params[0]);
 	this.metadata = settings.instruments[this.alias];
 
 	// instrument and buffers
-	this.settings = settings.instruments[this.alias];
-	if (this.settings.melodic) {
+	if (this.metadata.melodic) {
 		this.scale = SCALES[this.params[1]]; // ["a", "b", "c"]
 		this.range = this.params[2].split("+").map(function (d) { return parseInt(d, 10); });
 		this.scale.forEach(function (d) {
@@ -54,8 +55,11 @@ Generator.prototype.init = function () {
 			}
 		});
 	}
-	else
-		this.buffers = this.settings.buffers;
+	else {
+		var bufferNames = extract(this.params[0]);
+		if (bufferNames !== null)
+			this.buffers = bufferNames.splitOneLevel(",");
+	}
 	
 	// note length
 	this.noteLength = parseFloat(this.params[3]);
@@ -111,6 +115,8 @@ Generator.prototype.playBar = function () {
 Generator.prototype.setDisplayInfo = function () {
 	this.rhythmTokens = this.beats;
 	Base.prototype.setDisplayInfo.call(this);
+	if (!this.metadata.melodic)
+		this.displayInfo.melody = arrayToSet(this.pitches);
 };
 
 
@@ -150,3 +156,36 @@ function getRandom() {
 function getRandomInt(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
 };
+
+// Underscore.js, thank you for everything.
+function arrayToSet(arr) {
+	return _.uniq(arr);
+}
+
+// a,b,(c,d),e --> [a,b,(c,d),e]
+String.prototype.splitOneLevel = function (delimiter) {
+	var components = [];
+	var word = "";
+	var i = 0;
+	while (i < this.length) {
+		var char = this[i];
+		if (char === "(") {
+			while (this[i - 1] !== ")" && i < this.length) {
+				word += this[i];
+				i++;
+			}
+		}
+		else if (char === delimiter) {
+			components.push(word);
+			word = "";
+			i++;
+		}
+		else {
+			word += char;
+			i++;
+		}
+	}
+	if (word !== "")
+		components.push(word);
+	return components;
+}

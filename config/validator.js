@@ -12,18 +12,24 @@ var validator = {
 	
 	// error message
 	error: null,
-
+	
+	// report user error
 	onError: function (_error) {
 		this.error = _error;
 		console.log(this.error);
+		this.error = null;
+		return false; // signal an error
 	},
 	
 	/* SETTINGS VALIDATION */
 	settings: {
 		validate: function () {
-			this.validateDefaultInstruments();
-			this.validateInstrumentMetadata();
-			return (validator.error === null);
+			validator.error = null;
+			validator.runCascadingTests([
+				this.validateDefaultInstruments,
+				this.validateInstrumentMetadata
+			], null);
+			return validator.error === null;
 		},
 
 		validateDefaultInstruments: function () {
@@ -93,6 +99,55 @@ var validator = {
 				if (!_.contains(settings.MIDInotes, d))
 					return validator.onError("MIDI: invalid note --> " + d);
 			});
+		}
+	},
+	
+	instrument: {
+		validate: function (tokens) {
+			validator.error = null;
+			validator.runCascadingTests([
+				this.validateInstrument,
+				this.validateBuffers
+			], tokens);
+			return validator.error === null;
+		},
+		
+		//add/load _____ <-- should be an instrument alias defined in settings.instruments
+		validateInstrument: function (tokens) {
+			if (tokens[1].indexOf("(") < 0)
+				return validator.onError("Instrument: define the instrument and then the buffer. For example: 'drums(snare)'.");
+			var instrumentName = tokens[1].substring(0, tokens[1].indexOf("("));
+			if (!(_.contains(Object.keys(settings.instruments), instrumentName)))
+				return validator.onError("Instrument: no instrument defined as: " + instrumentName);
+		},
+		
+		// add drums(snare)
+		// add piano(c4,e4,gs4)
+		validateBuffers: function (tokens) {
+			var instrumentName = tokens[1].substring(0, tokens[1].indexOf("("));
+			var buffers = extract(tokens[1]).split(",");
+			var instrSettings = settings.instruments[instrumentName];
+			for (var i in buffers) {
+				if (instrSettings.melodic) {
+					if (!_.contains(settings.MIDInotes, buffers[i]))
+						return validator.onError("Instrument: invalid MIDI note '" + buffers[i] + "' in the buffer list. Check settings.MIDInotes.");
+				}
+				else {
+					if (!_.contains(instrSettings.buffers, buffers[i]))
+						return validator.onError("Instrument: invalid buffer '" + buffers[i] + "' in the buffer list. Check the settings for valid buffer files."); 
+				}
+					
+			}
+		}
+	},
+	
+	
+	// run multiple tests, only moving on to the next if the previous did not fail
+	// all tests should accept the same input tokens; tokens can be null if no input is needed (i.e. on settings)
+	runCascadingTests : function(tests, tokens) {
+		for (var testIndex in tests) {
+			if (tests[testIndex](tokens) === false)
+				break;
 		}
 	}
 	

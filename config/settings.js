@@ -106,3 +106,6 @@ var settings = {
 	]
 
 };
+
+// Make settings uneditable during runtime.
+Object.freeze(settings);

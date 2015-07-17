@@ -10,7 +10,17 @@ Instrument = function (_tokens) {
 	
 	// call the parent constructor
 	Base.call(this, _tokens);
+	
+	// instrument alias
+	this.alias = extractNamespace(this.tokens[1]);
 
+	// settings metadata
+	this.metadata = settings.instruments[this.alias];
+
+	// melodic content
+	this.buffers = extract(this.tokens[1]).split(",");
+
+	// melodic and rhythmic features
 	this.init();
 };
  
