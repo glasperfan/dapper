@@ -33,7 +33,7 @@ Instrument.prototype.init = function () {
 	// every 4th, on 1 2.5, etc.
 	this.grabRhythm();
 
-	// len, offset, shift, etc.
+	// len, offset, shift, sections, etc.
 	this.grabAttributes(this.tokens.join(" "));
 	
 	// track table information

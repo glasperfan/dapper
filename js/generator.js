@@ -91,7 +91,7 @@ Generator.prototype.evaluate = function () {
 			var sound = this.buffers[getRandomInt(0, this.buffers.length)];
 			
 			this.pitches.push(sound);
-			this.beats.push(i * this.noteLength);
+			this.beats.push(i * this.noteLength + 1); // 1-indexed beats
 			
 			// and the rhythm
 			this.hits.push(i * noteDuration);

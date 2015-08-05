@@ -179,7 +179,7 @@ function reverseNote(note) {
 	return (note.length === 3) ? rev + "s" : rev;
 }
 
-// extract what's inside the parentheses
+// extract the inner object: "bar" in foo(bar)
 function extract(s, format) {
 	// check syntax
 	var start = s.indexOf("("), end = s.lastIndexOf(")");

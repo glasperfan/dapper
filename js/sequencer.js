@@ -82,10 +82,10 @@ Sequencer.prototype.addLayer = function () {
 	var newTrack = null;
 	if (this.tokens[1].indexOf("generator") === 0)
 		newTrack = new Generator(this.tokens);
-	else {
-		if (validator.instrument.validate(this.tokens))
-			newTrack = new Instrument(this.tokens);
-	}
+	else if (this.tokens[1].indexOf("collection") === 0)
+		newTrack = new Collection(this.tokens);
+	else if (validator.instrument.validate(this.tokens))
+		newTrack = new Instrument(this.tokens);
 
 	if (newTrack !== null)
 		TRACKS.push(newTrack);
@@ -164,25 +164,17 @@ Sequencer.prototype.eventLoop = function () {
 
 Sequencer.prototype.setTempo = function () {
 	var that = this;
-	var newT = this.tokens[1];
-
-	if (newT === undefined)
-		return validator.onError("You must specify a tempo between 60 and 240.");
-
-	newT = parseInt(newT);
-	if (newT < 16)
-		return validator.onError("The lowest recognized tempo is 16 bpm.");
-
 	var oldTempo = tempo;
-	tempo = newT;
+	tempo = this.tokens[1];
+	
+	// seed tracks with the new tempo
 	for (var i in TRACKS)
 		TRACKS[i].init();
 
 	if (loopOn) {
-		this.pause();
-		this.tokens = []; // flush tokens
+		this.pause(); // removes old event loop
 		var waitTime = (measureStart + (60 / oldTempo * 4) - globalContext.currentTime) * 1000;
-		setTimeout(function () { that.play(); }, waitTime);
+		setTimeout(function () { that.play(true); }, waitTime);
 	}
 };
 
