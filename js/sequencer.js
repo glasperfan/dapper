@@ -35,6 +35,7 @@ Sequencer.prototype.init = function () {
 	try {
 		AudioContext = window.AudioContext || window.webkitAudioContext;
 		globalContext = new AudioContext(); // global
+		globalScriptNode = globalContext.createScriptProcessor(4096, 1, 1);
 	} catch (e) {
 		alert("Web Audio API is not supported in this browser");
 		return;
@@ -51,6 +52,31 @@ Sequencer.prototype.init = function () {
 	defaultInstruments.forEach(function (instr) {
 		loader.load(instr);
 	});
+	
+	// set up script processor node
+	// Give the node a function to process audio events
+	globalScriptNode.onaudioprocess = function (audioProcessingEvent) {
+		// The input buffer is the song we loaded earlier
+		var inputBuffer = audioProcessingEvent.inputBuffer;
+	
+		// The output buffer contains the samples that will be modified and played
+		var outputBuffer = audioProcessingEvent.outputBuffer;
+		debugger;
+		// Loop through the output channels (in this case there is only one)
+		for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+			var inputData = inputBuffer.getChannelData(channel);
+			var outputData = outputBuffer.getChannelData(channel);
+	
+			// Loop through the 4096 samples
+			for (var sample = 0; sample < inputBuffer.length; sample++) {
+				// make output equal to the same as the input
+				outputData[sample] = inputData[sample];
+	
+				// add noise to each output sample
+				outputData[sample] += ((Math.random() * 2) - 1) * 0.2;
+			}
+		}
+	};
 
 };
 
@@ -71,6 +97,7 @@ Sequencer.prototype.evaluateCommand = function (c) {
 	if (this.tokens[0] === "hide") return this.hide();
 	if (this.tokens[0] === "define") return this.define();
 	if (this.tokens[0] === "set") return this.set();
+	if (this.tokens[0] === "record") return this.record();
 
 	return validator.onError(this.tokens[0] + " is not a command.");
 };
@@ -315,6 +342,10 @@ Sequencer.prototype.define = function () {
 Sequencer.prototype.set = function () {
 	var index = parseInt(this.tokens[1]);
 	TRACKS[index].grabAttributes(this.tokens.join(" "));
+};
+
+Sequencer.prototype.record = function () {
+	var node = globalContext.createScriptProcessor(256, 1, 1);
 };
 
 

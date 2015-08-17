@@ -1,65 +1,44 @@
-# Drum Sequencer
+# Dapper
 
 _Built by Hugh Zabriskie._
 
-Build basic drum beats in just a few lines of code.
+Build, play, and record multi-instrumental tracks in just a few lines of code.
 
+Instructions included on the website.
 
-Instructions
-------------
+Demo
+----
 
-#### add [instrument] [rhythm]
+1. Go to http://hughzabriskie.com/login.
 
-Add `instrument` to the sequence with the specified `rhythm`.
+Username: guest. 
 
+Password: sequencer. 
 
-### remove [instrument]
+Then click on the link.
 
-Remove 'instrument' from the current sequence.
+2. Type or copy/paste the following commands into the command line, one at a time. Press enter after each one. 
 
+All of the commands with "generator" are random music generators based on the parameters inside the parentheses.
 
-#### build [section]
+add generator(piano,Amaj,4+5,0.5,0.6)
+add generator(piano,Amaj,5+6,0.25,1)
+add generator(piano,Amaj,2+3,2,0.5)
+add dry-kick every 4th sect(a)
+add piano(d2,a2) every 8th sect(b) gain(0.8)
+add piano(b2,cs3,fs3) every 4th sect(b)
+define d
+add generator(ride-2,0.5,0.6)
 
-Begin building a section called `section`. Until `end section` is called, all created instrument tracks will be added to this sequence.
+4. Type "play master" and press enter.
 
+5. Try any of the following commands, in any order, at any time.
 
-#### end [section]
+play master+a
+play master+b
+play master+a+b+c
+play master+a+b+d
+play all-b
+play
 
-Finish building `section`. All tracks will now be added to the main sequence.
-
-
-#### tempo [value]
-
-Set new tempo and reset all tracks. `value` must be between 60 and 240.
-
-
-#### play [section (opt)]
-
-Play the specified `section` by beginning the event loop. If `section` is undefined, play the main sequence.
-
-
-#### stop
-
-Stop the event loop and reset all sections and the main sequence.
-
-#### pause
-
-End event loop. restart with `play`.
-
-Sequences
----------
-
-There are two classifications of sequences. The main sequence exists as the default destination of tracks.
-A user can define new custom sections, however, and then switch between them.
-
-```
-> build A
-> add .....
-> end A
-> play A 		// A is now playing
-> build B
-> add .....
-> end B
-> play B 		// sequencer will switch to the B section
-> play A		// and you can always switch back to A
-```
+6. Type "pause" and press enter to pause it. You can always play it again (step 5).

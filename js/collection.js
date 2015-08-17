@@ -33,7 +33,6 @@ Collection.prototype.init = function () {
 	this.alias = extractNamespace(params[0]);
 	this.metadata = settings.instruments[this.alias];
 	this.sound = this.metadata.melodic ? null : extract(params[0]);
-	debugger;
 	
 	// Melodic information
 	this.buffers = [];

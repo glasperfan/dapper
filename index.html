@@ -24,7 +24,7 @@
 	<script src="js/generator.js"></script>
 	<script src="js/collection.js"></script>
 	<script src="js/pace.js"></script>
-	<script src="js/tabcompletion.js"></script>
+	<!--<script src="js/tabcompletion.js"></script> REMOVED UNTIL SWITCH TO TYPESCRIPT IS MADE -->
 	
 	<script src="http://documentcloud.github.io/underscore/underscore-min.js"></script>
 	
@@ -179,7 +179,7 @@
 	
 	function startHere() {
 		sequencer = new Sequencer(140);
-		tc = new TabCompletion();
+		//tc = new TabCompletion();
 		//documentation.update();
 		HISTORY = [];
 		hist_index = 0;
@@ -199,7 +199,7 @@
 				HISTORY.push(c);
 				hist_index = 0;
 			}
-			tc.clearTable();
+			// tc.clearTable();
 		}
 		
 		// UP ARROW
@@ -211,7 +211,7 @@
 				setCommand(HISTORY[len - hist_index]);
 			}
 			setCaretAtEnd();
-			tc.clearTable();
+			// tc.clearTable();
 		}
 		
 		// DOWN ARROW
@@ -224,22 +224,22 @@
 				hist_index > 0 ? HISTORY[len - hist_index] : ""
 			);
 			setCaretAtEnd();
-			tc.clearTable();
+			// tc.clearTable();
 		}
 		
 		// TAB
 		else if (e.keyCode === 9) {
 			e.preventDefault();
-			setTimeout(function() {
-				tc.completeCommand();
-			}, 40); // 40ms delay to let DOM update
+			// setTimeout(function() {
+			// 	tc.completeCommand();
+			// }, 40); // 40ms delay to let DOM update
 		}
 		
 		// TEXT INPUT
 		else {
-			setTimeout(function() {
-				tc.broadcastSuggestion(getCommand());
-			}, 40);
+			// setTimeout(function() {
+			// 	tc.broadcastSuggestion(getCommand());
+			// }, 40);
 		}
 	}
 	

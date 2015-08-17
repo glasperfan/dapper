@@ -144,9 +144,13 @@ Base.prototype.play = function (time, buffer) {
 	source.buffer = buffer;
 	gain.gain.value = this.attributes.gain;
 	source.connect(gain);
-	gain.connect(globalContext.destination);
-//	console.log(time);
+	gain.connect(globalScriptNode);
+	globalScriptNode.connect(globalContext.destination);
 	source.start(time);
+	
+	source.onended = function () {
+		source.disconnect(scriptNode);
+	};
 };
 
 
